@@ -161,40 +161,43 @@ Ackermann 函數本身就是以遞迴方式定義的，因此使用遞迴函式�
 
 ```cpp
 #include <iostream>
-#include <vector>
+#include <string>
 using namespace std;
 
-void powerSet(int index, vector<string>& set, vector<string>& subset) {
-    if (index == set.size()) {
-        cout << "{";
-        for (int i = 0; i < subset.size(); i++) {
+string elements[20];
+string subset[20];
+int n;
+
+void powerSet(int index, int subsetSize) {
+    if (index == n) {
+        cout << "(";
+        for (int i = 0; i < subsetSize; i++) {
             if (i) cout << ",";
             cout << subset[i];
         }
-        cout << "}" << endl;
+        cout << ")";
+        cout << " ";
         return;
     }
-    powerSet(index + 1, set, subset);
-    subset.push_back(set[index]);
-    powerSet(index + 1, set, subset);
-    subset.pop_back();
+    powerSet(index + 1, subsetSize);
+    subset[subsetSize] = elements[index];
+    powerSet(index + 1, subsetSize + 1);
 }
 
 int main() {
-    int n;
     cout << "請輸入元素個數 n：";
     cin >> n;
 
-    vector<string> set(n);
     cout << "請輸入 " << n << " 個元素：";
-    for (int i = 0; i < n; i++) cin >> set[i];
+    for (int i = 0; i < n; i++)
+        cin >> elements[i];
 
     cout << "Powerset 結果如下：" << endl;
-    vector<string> subset;
-    powerSet(0, set, subset);
+    powerSet(0, 0);
 
     return 0;
 }
+
 ```
 ## 效能分析
 1. 共有 $2ⁿ$ 種子集合，每個子集合最多處理 $n$ 個元素，因此整體時間複雜度為 $O(n⋅2ⁿ)$ 。
