@@ -1,6 +1,6 @@
 # 41343149
 
-## 作業一 $Ackermann's Function$
+## 作業一 $Ackermann's  Function$
 
 ## 解題說明
 
