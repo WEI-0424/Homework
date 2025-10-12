@@ -114,6 +114,9 @@ int main() {
 ### 編譯與執行指令
 
 ```shell
+g++ ackermann.cpp -o ackermann -std=c++17
+./ackermann
+
 請輸入 m 與 n ：2 3
 A(2, 3) = 9
 請輸入 m 與 n ：3 3
@@ -149,6 +152,86 @@ Ackermann 函數本身就是以遞迴方式定義的，因此使用遞迴函式�
 
 ## 解題說明
 給定一個含有 $n$ 個元素的集合 $S$ ，其冪集 $powerset(S)$ 是所有子集合的集合；因此冪集的大小為 $2ⁿ$ 。例如 $S = {{a,b,c}}$ 時，
-      $powerset(S)={{a},{b},{c},{a,b},{a,c},{b,c},{a,b,c}}$
+      $powerset(S)={(),(a),(b),(c),(a,b),(a,c),(b,c),(a,b,c)}$
 
 ### 解題策略
+使用遞迴的方法，每次決定是否將當前元素加入子集合。當遞迴到最後一個元素時，即輸出目前的子集合。
+
+## 程式實作
+
+```cpp
+#include <iostream>
+#include <vector>
+using namespace std;
+
+void powerSet(int index, vector<string>& set, vector<string>& subset) {
+    if (index == set.size()) {
+        cout << "{";
+        for (int i = 0; i < subset.size(); i++) {
+            if (i) cout << ",";
+            cout << subset[i];
+        }
+        cout << "}" << endl;
+        return;
+    }
+    powerSet(index + 1, set, subset);
+    subset.push_back(set[index]);
+    powerSet(index + 1, set, subset);
+    subset.pop_back();
+}
+
+int main() {
+    int n;
+    cout << "請輸入元素個數 n：";
+    cin >> n;
+
+    vector<string> set(n);
+    cout << "請輸入 " << n << " 個元素：";
+    for (int i = 0; i < n; i++) cin >> set[i];
+
+    cout << "Powerset 結果如下：" << endl;
+    vector<string> subset;
+    powerSet(0, set, subset);
+
+    return 0;
+}
+```
+## 效能分析
+1. 共有 $2ⁿ$ 種子集合，每個子集合最多處理 $n$ 個元素，因此整體時間複雜度為 $O(n⋅2ⁿ)$ 。
+2. 遞迴深度為 $n$ ，同時需保存目前的子集合，額外空間為 $O(n)$ 。若將所有結果保存起來，則需 $O(n⋅2ⁿ)$ 空間。
+
+## 測試與驗證
+
+### 測試案例
+| 測資 | 輸入參數 $n$ , 元素 | 預期輸出 | 實際輸出 |
+|----------|--------------|----------|----------|
+| 測試一   | $n = 1$ , $a$ | $() (a)$       | $() (a)$       |
+| 測試二   | $m = 2$ , $a b$ | $() (b) (a) (a,b)$  | $() (b) (a) (a,b)$       |
+| 測試三   | $m = 3$ , $a b c$ | $() (c) (b) (b,c) (a) (a,c) (a,b) (a,b,c)$ | $() (c) (b) (b,c) (a) (a,c) (a,b) (a,b,c)$ |
+
+### 編譯與執行指令
+
+```shell
+g++ powerset.cpp -o powerset -std=c++17
+./powerset
+
+請輸入元素個數 n：3
+請輸入 3 個元素：a b c
+Powerset 結果如下：
+() (c) (b) (b,c) (a) (a,c) (a,b) (a,b,c)
+
+```
+
+### 結論
+1. 遞迴能直觀地表達「選或不選」的過程，結構簡潔且易懂。
+2. 遞迴法的優點是能以極少的程式碼完成極具層次感的運算過程，相較於迴圈或位元操作法，這種寫法更容易理解且結構清楚。
+
+## 申論及開發報告
+
+### 選擇遞迴的原因
+1. 具良好的可擴充性與可讀性
+   遞迴方法的結構固定且統一，若要修改輸出格式或增加其他運算條件（例如排序或篩選），只需在基底情況或分支部分稍作調整即可。這使得程式在實作上都更具彈性。
+2. 邏輯結構清楚跟符合冪集定義
+   冪集的生成就是一種二元選擇過程，每個元素都要判斷「是否被包含」。遞迴能自然地模擬這個決策流程：每一層遞迴代表一個元素的選擇狀態，當所有元素都被處理後，就形成一個完整的子集合。
+3. 缺點跟限制
+   由於冪集的結果數量為 $2ⁿ$ ，當輸入集合過大時，遞迴次數與輸出量都會急速增加，可能導致執行時間變長或記憶體使用量上升。
