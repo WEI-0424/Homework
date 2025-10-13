@@ -113,8 +113,8 @@ int main() {
 ### 編譯與執行指令
 
 ```shell
-g++ ackermann.cpp -o ackermann -std=c++17
-./ackermann
+cd "/Applications/code/" && g++ ackermann.cpp -o ackermann && "/Applications/code/"ackermann
+wei@Mac code % cd "/Applications/code/" && g++ ackermann.cpp -o ackermann && "/Applications/code/"ackermann
 
 請輸入 m 與 n ：2 3
 A(2, 3) = 9
