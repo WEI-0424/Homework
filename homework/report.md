@@ -28,7 +28,6 @@
 #include <iostream>
 using namespace std;
 
-// Ackermann 函式 (遞迴)
 int Ackermann(int m, int n) {
     if (m == 0)
         return n + 1;
