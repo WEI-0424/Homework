@@ -174,8 +174,7 @@ void powerSet(int index, int subsetSize) {
             if (i) cout << ",";
             cout << subset[i];
         }
-        cout << ")";
-        cout << " ";
+        cout << ")"<<" ";
         return;
     }
     powerSet(index + 1, subsetSize);
