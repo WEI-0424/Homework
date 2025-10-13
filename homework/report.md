@@ -214,8 +214,8 @@ int main() {
 ### 編譯與執行指令
 
 ```shell
-g++ powerset.cpp -o powerset -std=c++17
-./powerset
+cd "/Applications/code/" && g++ powerset.cpp -o powerset && "/Applications/code/"powerset
+wei@Mac code % cd "/Applications/code/" && g++ powerset.cpp -o powerset && "/Applications/code/"powerset
 
 請輸入元素個數 n：3
 請輸入 3 個元素：a b c
