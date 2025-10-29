@@ -207,15 +207,16 @@ int main() {
 ### 編譯與執行指令
 
 ```shell
-cd "/Applications/code/" && g++ ackermann.cpp -o ackermann && "/Applications/code/"ackermann
-wei@Mac code % cd "/Applications/code/" && g++ ackermann.cpp -o ackermann && "/Applications/code/"ackermann
-
-請輸入 m 與 n ：2 3
-A(2, 3) = 9
-請輸入 m 與 n ：3 3
-A(3, 3) = 61
-請輸入 m 與 n ：4 0
-A(4, 0) = 13
+cd "/Applications/code/" && g++ polynomial_class.cpp -o polynomial_class && "/Applications/code/"polynomial_class
+wei@Toaster code % cd "/Applications/code/" && g++ polynomial_class.cpp -o polynomial_class && "/Applications/code/"polynomial_class
+3
+5 2
+3 1
+7 0
+2 
+3 2
+-5 0
+8X^2+3X^1+2X^0
 ```
 
 ### 結論
