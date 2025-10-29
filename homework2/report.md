@@ -232,7 +232,7 @@ wei@Toaster code % cd "/Applications/code/" && g++ polynomial_class.cpp -o polyn
 
 就代表時間複雜度符合 $O(n)$ 。
 
-##申論及開發報告
+## 申論及開發報告
 
 ### 心得討論
 這次的作業我大致上學會如何使用類別來實作抽象資料型態( $ADT$ )。
