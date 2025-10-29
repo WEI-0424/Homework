@@ -41,37 +41,49 @@ $A(x)=5X³+2X²-7X+1$
 ## 程式實作
 
 ```cpp
+/*
+Algorithm Design:
+1. 使用兩個類別 Term 與 Polynomial 來表示多項式。
+2. newTerm(): 將輸入的係數與指數加入 termArray，如果容量不夠就擴充成兩倍。
+3. Add(): 使用雙指標走訪兩個多項式，若指數相同則係數相加。
+4. operator>>(): 輸入項數與 (coef, exp)。
+5. operator<<(): 依序輸出每一項，格式為 coefX^exp。
+*/
 #include <iostream>
 using namespace std;
 
 class Polynomial;
 
+//用來儲存一項的係數與指數
 class Term {
     friend Polynomial;
     friend ostream& operator<<(ostream &output, const Polynomial &Poly);
 private:
-    int exp;
-    float coef;
+    int exp;// 指數
+    float coef;// 係數
 };
 
+// Polynomial 類別：用動態陣列表示多項式
 class Polynomial {
 private:
-    Term *termArray;
-    int capacity;
-    int terms;
+    Term *termArray; // 指向 Term 陣列
+    int capacity; // 陣列容量
+    int terms; // 目前多項式的項數
 public:
+   // 建構子：初始化容量與項數
     Polynomial(): capacity(2), terms(0) {
         termArray = new Term[capacity];
     }
+ // 解構子：釋放動態記憶體
     ~Polynomial() {
         delete [] termArray;
     }
-
+ // 拷貝建構子：避免淺拷貝造成重複釋放
     Polynomial(const Polynomial& other): capacity(other.capacity), terms(other.terms) {
         termArray = new Term[capacity];
         for (int i = 0; i < terms; ++i) termArray[i] = other.termArray[i];
     }
-
+// 指派運算子：實作深拷貝
     Polynomial& operator=(const Polynomial& other) {
         if (this == &other) return *this;
         Term* newArr = new Term[other.capacity];
@@ -82,14 +94,15 @@ public:
         terms = other.terms;
         return *this;
     }
-
+// 多項式加法
     Polynomial Add(const Polynomial& b) const;
+// 新增新項
     void newTerm(const float newcoef, const int newexp);
-
+// 輸入與輸出運算子
     friend istream& operator>>(istream& is, Polynomial& poly);
     friend ostream& operator<<(ostream& os, const Polynomial& poly);
 };
-
+// operator>>：輸入
 istream& operator>>(istream& is, Polynomial& poly) {
     float coef;
     int exp, n;
@@ -100,7 +113,7 @@ istream& operator>>(istream& is, Polynomial& poly) {
     }
     return is;
 }
-
+// operator<<：輸出
 ostream& operator<<(ostream& os, const Polynomial& poly) {
     for (int i = 0; i < poly.terms; ++i) {
         if (i > 0) os << "+";
@@ -108,7 +121,7 @@ ostream& operator<<(ostream& os, const Polynomial& poly) {
     }
     return os;
 }
-
+// Add()：兩個多項式相加
 Polynomial Polynomial::Add(const Polynomial& b) const {
     Polynomial r;
     int i = 0, j = 0;
@@ -129,7 +142,7 @@ Polynomial Polynomial::Add(const Polynomial& b) const {
     while (j < b.terms) { r.newTerm(b.termArray[j].coef, b.termArray[j].exp); ++j; }
     return r;
 }
-
+// newTerm()：在多項式中新增一個項目
 void Polynomial::newTerm(const float theCoef, const int theExp) {
     if (theCoef == 0) return;
     if (terms == capacity) {
@@ -148,7 +161,7 @@ int main() {
     Polynomial a, b, c;
     cin >> a >> b;
     c = a.Add(b);
-    cout << c << endl;
+    cout << c << endl;// 輸出結果
     return 0;
 }
 
@@ -157,13 +170,13 @@ int main() {
 
 
 ## 效能分析
-遞迴函式:
-1. 時間複雜度：當 $m$ 與 $n$　的數值較小時(例如 $m=2,n=4$ )，整體遞迴深度仍然可控制在安全範圍內;但隨著輸入增大，遞迴呼叫會迅速堆疊，導致記憶體占用成倍成長。當 $m=0,1,2$ 時，空間複雜度大約為 $O(1)$ 、 $O(2)$ 、 $O(3)$ ;若m=3，則上升至約 $O(2ⁿ)$ ；而當 $m≥4$ 時，成長速度甚至超越指數級，極容易造成系統堆疊溢位。
-2. 空間複雜度：對於較小的 $m$ 值(例如 $0、1、2、3$ )，可藉由簡單的遞迴公式推得其時間複雜度分別約為 $O(1)$ 、 $O(n)$ 、 $O(2ⁿ)$ 。但當 $m$ 提升至 4 以上時，函式的執行次數呈現爆炸性增長，其增長速率遠超過一般指數級，理論上屬於超指數等級的複雜度。
+| 函式 | 功能 | 時間複雜度 | 空間複雜度 |
+|----------|--------------|----------|----------|
+| $newTerm()$   | 新增新項 | $O(1)$、擴容時 $O(n)$    | $O(n)$        |
+| $Add()$   | 多項式加法 | $O(n+m)$        | $O(max(n,m))$        |
+| $operator>>$   | 輸入 | $O(n)$        | $O(n)$        |
+| $operator<<$   | 輸出 | $O(n)$       | $O(1)$       |
 
-非遞迴函式:
-1. 時間複雜度：在非遞迴版本中，雖然以陣列模擬呼叫堆疊能避免系統層級的遞迴限制，但所需的空間量仍隨m與n的增長急劇膨脹。當 $m=3$ 時，約為 $O(n)$ ;當m=4時，則提升為 $O(2ⁿ)$ ;而若 $m≥5$ ，其空間需求甚至可達 $O(2^(2^(⋯2^n)))$ 的多層次指數規模。
-2. 空間複雜度：非遞迴實作的時間成本與遞迴版本相當，因為運算邏輯一致。當 $m=3$ 時，時間複雜度約為 $O(2ⁿ)$；當 $m=4$ 時，則成長為雙層指數等級 $O(2^(2^(⋯2^n)))$ 。實際測試中，例如 $A(4,2)$ 的計算就可能需要數億次以上的操作，顯示其運算量極為龐大。
 ## 測試與驗證
 
 ### 測試案例
