@@ -21,82 +21,140 @@ $A(x)=5X³+2X²-7X+1$
 
 為了要落實多項式，所以我們以類別設計( $ADT$ )實作
 
-### 解題策略
+### 解題策略( $How$ $to$ $do$ )
 
-1. 遞迴函式
-   直接依照數學定義撰寫函式。每次呼叫自己時縮小問題規模，直到遇到最基本的情況 $m=0$ 。
-2. 非遞迴函式
-   使用堆疊模擬遞迴呼叫 每次將當前的 $m$ 推入堆疊，依條件進行回溯運算，直到堆疊清空為止
+1. #### 資料結構設計
+   使用類別設計法（ $ADT$ ）
+   
+   $Term$ ：用來儲存一項的係數與指數。
+   
+   而 $Polynomial$ :包含一個Term陣列與項目數
+2. #### 多項式加法演算法
+   使用兩個指標 $aPos$、 $bPos$ 逐一比較兩個多項式的項：
+
+   若指數相同 → 係數相加後插入結果。
+
+   若一邊指數較大 → 優先插入該項。
+3. #### 動態記憶體管理
+   初始容量 2。若項目超出容量，自動擴充成兩倍。
 
 ## 程式實作
 
-遞迴函式：
-
 ```cpp
 #include <iostream>
 using namespace std;
 
-int Ackermann(int m, int n) {
-    if (m == 0)
-        return n + 1;
-    else if (n == 0)
-        return Ackermann(m - 1, 1);
-    else
-        return Ackermann(m - 1, Ackermann(m, n - 1));
+class Polynomial;
+
+class Term {
+    friend Polynomial;
+    friend ostream& operator<<(ostream &output, const Polynomial &Poly);
+private:
+    int exp;
+    float coef;
+};
+
+class Polynomial {
+private:
+    Term *termArray;
+    int capacity;
+    int terms;
+public:
+    Polynomial(): capacity(2), terms(0) {
+        termArray = new Term[capacity];
+    }
+    ~Polynomial() {
+        delete [] termArray;
+    }
+
+    Polynomial(const Polynomial& other): capacity(other.capacity), terms(other.terms) {
+        termArray = new Term[capacity];
+        for (int i = 0; i < terms; ++i) termArray[i] = other.termArray[i];
+    }
+
+    Polynomial& operator=(const Polynomial& other) {
+        if (this == &other) return *this;
+        Term* newArr = new Term[other.capacity];
+        for (int i = 0; i < other.terms; ++i) newArr[i] = other.termArray[i];
+        delete[] termArray;
+        termArray = newArr;
+        capacity = other.capacity;
+        terms = other.terms;
+        return *this;
+    }
+
+    Polynomial Add(const Polynomial& b) const;
+    void newTerm(const float newcoef, const int newexp);
+
+    friend istream& operator>>(istream& is, Polynomial& poly);
+    friend ostream& operator<<(ostream& os, const Polynomial& poly);
+};
+
+istream& operator>>(istream& is, Polynomial& poly) {
+    float coef;
+    int exp, n;
+    is >> n;
+    while (n--) {
+        is >> coef >> exp;
+        poly.newTerm(coef, exp);
+    }
+    return is;
+}
+
+ostream& operator<<(ostream& os, const Polynomial& poly) {
+    for (int i = 0; i < poly.terms; ++i) {
+        if (i > 0) os << "+";
+        os << poly.termArray[i].coef << "X^" << poly.termArray[i].exp;
+    }
+    return os;
+}
+
+Polynomial Polynomial::Add(const Polynomial& b) const {
+    Polynomial r;
+    int i = 0, j = 0;
+    while (i < terms && j < b.terms) {
+        if (termArray[i].exp == b.termArray[j].exp) {
+            float s = termArray[i].coef + b.termArray[j].coef;
+            if (s) r.newTerm(s, termArray[i].exp);
+            ++i; ++j;
+        } else if (termArray[i].exp < b.termArray[j].exp) {
+            r.newTerm(b.termArray[j].coef, b.termArray[j].exp);
+            ++j;
+        } else {
+            r.newTerm(termArray[i].coef, termArray[i].exp);
+            ++i;
+        }
+    }
+    while (i < terms) { r.newTerm(termArray[i].coef, termArray[i].exp); ++i; }
+    while (j < b.terms) { r.newTerm(b.termArray[j].coef, b.termArray[j].exp); ++j; }
+    return r;
+}
+
+void Polynomial::newTerm(const float theCoef, const int theExp) {
+    if (theCoef == 0) return;
+    if (terms == capacity) {
+        capacity *= 2;
+        Term* temp = new Term[capacity];
+        for (int i = 0; i < terms; ++i) temp[i] = termArray[i];
+        delete[] termArray;
+        termArray = temp;
+    }
+    termArray[terms].coef = theCoef;
+    termArray[terms].exp = theExp;
+    ++terms;
 }
 
 int main() {
-    int m, n;
-    cout << "請輸入 m 與 n ：";
-    while (cin >> m >> n) {
-        cout << "A(" << m << ", " << n << ") = " << Ackermann(m, n) << endl;
-        cout << "請輸入 m 與 n ：";
-    }
+    Polynomial a, b, c;
+    cin >> a >> b;
+    c = a.Add(b);
+    cout << c << endl;
     return 0;
 }
-```
-非遞迴涵式 :
 
-```cpp
-#include <iostream>
-using namespace std;
-
-int AckermannLoop(int m, int n) {
-    const int STACK_SIZE = 100000;
-    int stack[STACK_SIZE];
-    int top = 0;
-
-    stack[top++] = m;
-
-    while (top > 0) {
-        m = stack[--top];
-
-        if (m == 0) {
-            n += 1;
-        }
-        else if (n == 0) {
-            stack[top++] = m - 1;
-            n = 1;
-        }
-        else {
-            stack[top++] = m - 1;
-            stack[top++] = m;
-            n -= 1;
-        }
-    }
-    return n;
-}
-
-int main() {
-    int m, n;
-    cout << "請輸入 m 與 n ：";
-    while (cin >> m >> n) {
-        cout << "A(" << m << ", " << n << ") = " << AckermannLoop(m, n) << endl;
-        cout << "請輸入 m 與 n ：";
-    }
-    return 0;
 }
 ```
+
 
 ## 效能分析
 遞迴函式:
@@ -152,95 +210,3 @@ A(4, 0) = 13
    當 $n =0$ 時，計算 $A(m-1,1)$ 。  
    其他情況下，呼叫 $A(m-1,A(m,n-1)) 。  
    這樣的邏輯層次清晰、概念明確，讓整體函式架構與原始定義完全一致。
-
-   --------------------------------------------------------------------------------------------------------------------------------------------------------------------
-
-## 作業一(二) $Powerset$
-
-## 解題說明
-給定一個含有 $n$ 個元素的集合 $S$ ，其冪集 $powerset(S)$ 是所有子集合的集合；因此冪集的大小為 $2ⁿ$ 。例如 $S = {{a,b,c}}$ 時，
-      $powerset(S)={(),(a),(b),(c),(a,b),(a,c),(b,c),(a,b,c)}$
-
-### 解題策略
-使用遞迴的方法，每次決定是否將當前元素加入子集合。當遞迴到最後一個元素時，即輸出目前的子集合。
-
-## 程式實作
-
-```cpp
-#include <iostream>
-#include <string>
-using namespace std;
-
-string elements[20];
-string subset[20];
-int n;
-
-void powerSet(int index, int subsetSize) {
-    if (index == n) {
-        cout << "(";
-        for (int i = 0; i < subsetSize; i++) {
-            if (i) cout << ",";
-            cout << subset[i];
-        }
-        cout << ")"<<" ";
-        return;
-    }
-    powerSet(index + 1, subsetSize);
-    subset[subsetSize] = elements[index];
-    powerSet(index + 1, subsetSize + 1);
-}
-
-int main() {
-    cout << "請輸入元素個數 n：";
-    cin >> n;
-
-    cout << "請輸入 " << n << " 個元素：";
-    for (int i = 0; i < n; i++)
-        cin >> elements[i];
-
-    cout << "Powerset 結果如下：" << endl;
-    powerSet(0, 0);
-
-    return 0;
-}
-
-```
-## 效能分析
-1. 共有 $2ⁿ$ 種子集合，每個子集合最多處理 $n$ 個元素，因此整體時間複雜度為 $O(n⋅2ⁿ)$ 。
-2. 遞迴深度為 $n$ ，同時需保存目前的子集合，額外空間為 $O(n)$ 。若將所有結果保存起來，則需 $O(n⋅2ⁿ)$ 空間。
-
-## 測試與驗證
-
-### 測試案例
-| 測資 | 輸入參數 $n$ , 元素 | 預期輸出 | 實際輸出 |
-|----------|--------------|----------|----------|
-| 測試一   | $m = 1$ , $a$ | $() (a)$       | $() (a)$       |
-| 測試二   | $m = 2$ , $a b$ | $() (b) (a) (a,b)$  | $() (b) (a) (a,b)$       |
-| 測試三   | $m = 3$ , $a b c$ | $() (c) (b) (b,c) (a) (a,c) (a,b) (a,b,c)$ | $() (c) (b) (b,c) (a) (a,c) (a,b) (a,b,c)$ |
-
-### 編譯與執行指令
-
-```shell
-cd "/Applications/code/" && g++ powerset.cpp -o powerset && "/Applications/code/"powerset
-wei@Mac code % cd "/Applications/code/" && g++ powerset.cpp -o powerset && "/Applications/code/"powerset
-
-請輸入元素個數 n：3
-請輸入 3 個元素：a b c
-Powerset 結果如下：
-() (c) (b) (b,c) (a) (a,c) (a,b) (a,b,c)
-
-```
-
-### 結論
-1. 遞迴能直觀地表達「選或不選」的過程，結構簡潔且易懂。
-2. 遞迴法的優點是能以極少的程式碼完成極具層次感的運算過程，相較於迴圈或位元操作法，這種寫法更容易理解且結構清楚。
-
-## 申論及開發報告
-
-### 選擇遞迴的原因
-1. 具良好的可擴充性與可讀性  
-   遞迴方法的結構固定且統一，若要修改輸出格式或增加其他運算條件（例如排序或篩選），只需在基底情況或分支部分稍作調整即可。這使得程式在實作上都更具彈性。
-2. 邏輯結構清楚跟符合冪集定義  
-   冪集的生成就是一種二元選擇過程，每個元素都要判斷「是否被包含」。遞迴能自然地模擬這個決策流程：每一層遞迴代表一個元素的選擇狀態，當所有元素都被處理後，就形成一個完整的子集合。
-3. 缺點跟限制  
-   由於冪集的結果數量為 $2ⁿ$ ，當輸入集合過大時，遞迴次數與輸出量都會急速增加，可能導致執行時間變長或記憶體使用量上升。
