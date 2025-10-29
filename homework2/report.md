@@ -170,7 +170,7 @@ int main() {
 ```
 
 
-## 效能分析 ( $Analysis$ )
+## 效能分析
 | 函式 | 功能 | 時間複雜度 | 空間複雜度 |
 |----------|--------------|----------|----------|
 | $newTerm()$   | 新增新項 | $O(1)$、擴容時 $O(n)$    | $O(n)$        |
@@ -178,7 +178,7 @@ int main() {
 | $operator>>$   | 輸入 | $O(n)$        | $O(n)$        |
 | $operator<<$   | 輸出 | $O(n)$       | $O(1)$       |
 
-## 測試與驗證 ( $Testing$ $and$ $Proving$ )
+## 測試與驗證 
 
 ### 測試案例
 
@@ -219,7 +219,7 @@ wei@Toaster code % cd "/Applications/code/" && g++ polynomial_class.cpp -o polyn
 -5 0
 8X^2+3X^1+2X^0
 ```
-## 效能量測( $Measuring$ )
+## 效能量測
 在輸入項數增加時，程式運算時間成線性增長。
 
 例如:
