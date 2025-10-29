@@ -170,7 +170,7 @@ int main() {
 ```
 
 
-## 效能分析( $Analysis$ )
+## 效能分析 ( $Analysis$ )
 | 函式 | 功能 | 時間複雜度 | 空間複雜度 |
 |----------|--------------|----------|----------|
 | $newTerm()$   | 新增新項 | $O(1)$、擴容時 $O(n)$    | $O(n)$        |
@@ -178,7 +178,7 @@ int main() {
 | $operator>>$   | 輸入 | $O(n)$        | $O(n)$        |
 | $operator<<$   | 輸出 | $O(n)$       | $O(1)$       |
 
-## 測試與驗證( $Testing$ $and$ $Proving$ )
+## 測試與驗證 ( $Testing$ $and$ $Proving$ )
 
 ### 測試案例
 
@@ -231,6 +231,9 @@ wei@Toaster code % cd "/Applications/code/" && g++ polynomial_class.cpp -o polyn
 | $1000$   | $1.2$ | 
 
 就代表時間複雜度符合 $O(n)$ 。
+
+##申論及開發報告
+
 ### 心得討論
 這次的作業我大致上學會如何使用類別來實作抽象資料型態( $ADT$ )。
 
