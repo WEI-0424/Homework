@@ -1,182 +1,302 @@
 # 41343149
 
-## 作業一 $Polynomial$ $Class$
+## 作業三 $Polynomial + Available Lists$
 
 ## 解題說明
 
-這一次的作業要求實作一個 Polynomial類別，要以程式方式建立多項式，並且支援基本運算與輸入輸出功能。
-
-而多項式由多個「項」組成，每項包含：一個係數 ( $coefficient$ )、一個指數 ( $exponent$ )
-
-就像是:
-
-$A(x)=5X³+2X²-7X+1$
-
-可以表示成:
-| $係數$ | $指數$ | 
-|----------|--------------|
-| $5$   | $3$ |
-| $2$   | $2$ | 
-| $-7$   | $1$ | 
-| $1$   | $0$ |
-
-為了要落實多項式，所以我們以類別設計( $ADT$ )實作
+使用 $Polynomial$類別來表示多項式，並且要有加法 ( $+$ )  , 減法 ( $-$ )  , 乘法 ( $*$ ) ，動態輸入多項式使用鏈結串列管理多項式項目，且提高效率
 
 ### 解題策略( $How$ $to$ $do$ )
 
-1. #### 資料結構設計
-   使用類別設計法（ $ADT$ ）
-   
-   $Term$ ：用來儲存一項的係數與指數。
-   
-   而 $Polynomial$ :包含一個Term陣列與項目數
-2. #### 多項式加法演算法
-   使用兩個指標 $aPos$、 $bPos$ 逐一比較兩個多項式的項：
+1. #### ChainNode：
+   建立節點，保存資料與指向下一個節點的指標
 
-   若指數相同 → 係數相加後插入結果。
-
-   若一邊指數較大 → 優先插入該項。
-3. #### 動態記憶體管理
-   初始容量 2。若項目超出容量，自動擴充成兩倍。
+2. ####  $Chain / ChainIterator：$
+   完成串列操作與走訪方式，讓後續多項式可以用 $iterator$ 逐項處理。
+   
+4. #### $Available List$
+   將刪掉或釋放的節點放進回收串列，下次需要節點時優先取用，提升記憶體使用效率。
 
 ## 程式實作
 
 ```cpp
-/*
-Algorithm Design:
-1. 使用兩個類別 Term 與 Polynomial 來表示多項式。
-2. newTerm(): 將輸入的係數與指數加入 termArray，如果容量不夠就擴充成兩倍。
-3. Add(): 使用雙指標走訪兩個多項式，若指數相同則係數相加。
-4. operator>>(): 輸入項數與 (coef, exp)。
-5. operator<<(): 依序輸出每一項，格式為 coefX^exp。
-*/
+//Chain.h
+#ifndef CHAIN_H
+#define CHAIN_H
+
 #include <iostream>
 using namespace std;
 
-class Polynomial;
+template <class T> class Chain;
+template <class T> class ChainIterator;
+template <class T> class AvailableList;
 
-//用來儲存一項的係數與指數
-class Term {
-    friend Polynomial;
-    friend ostream& operator<<(ostream &output, const Polynomial &Poly);
+//--- ChainNode ---
+template <class T>
+class ChainNode {
+    friend class Chain<T>;
+    friend class ChainIterator<T>;
+    friend class AvailableList<T>;
 private:
-    int exp;// 指數
-    float coef;// 係數
-};
-
-// Polynomial 類別：用動態陣列表示多項式
-class Polynomial {
-private:
-    Term *termArray; // 指向 Term 陣列
-    int capacity; // 陣列容量
-    int terms; // 目前多項式的項數
+    T element;
+    ChainNode<T>* next;
 public:
-   // 建構子：初始化容量與項數
-    Polynomial(): capacity(2), terms(0) {
-        termArray = new Term[capacity];
-    }
- // 解構子：釋放動態記憶體
-    ~Polynomial() {
-        delete [] termArray;
-    }
- // 拷貝建構子：避免淺拷貝造成重複釋放
-    Polynomial(const Polynomial& other): capacity(other.capacity), terms(other.terms) {
-        termArray = new Term[capacity];
-        for (int i = 0; i < terms; ++i) termArray[i] = other.termArray[i];
-    }
-// 指派運算子：實作深拷貝
-    Polynomial& operator=(const Polynomial& other) {
-        if (this == &other) return *this;
-        Term* newArr = new Term[other.capacity];
-        for (int i = 0; i < other.terms; ++i) newArr[i] = other.termArray[i];
-        delete[] termArray;
-        termArray = newArr;
-        capacity = other.capacity;
-        terms = other.terms;
+    ChainNode() : next(nullptr) {}
+    ChainNode(const T& e) : element(e), next(nullptr) {}
+};
+//---
+
+//--- ChainIterator ---
+template <class T>
+class ChainIterator {
+private:
+    ChainNode<T>* current;
+public:
+    ChainIterator(ChainNode<T>* start = nullptr) : current(start) {}
+
+    T& operator*() const { return current->element; }
+    T* operator->() const { return &current->element; }
+
+    ChainIterator& operator++() {
+        if (current) current = current->next;
         return *this;
     }
-// 多項式加法
-    Polynomial Add(const Polynomial& b) const;
-// 新增新項
-    void newTerm(const float newcoef, const int newexp);
-// 輸入與輸出運算子
-    friend istream& operator>>(istream& is, Polynomial& poly);
-    friend ostream& operator<<(ostream& os, const Polynomial& poly);
+
+    bool operator!=(const ChainIterator& rhs) const {
+        return current != rhs.current;
+    }
 };
-// operator>>：輸入
-istream& operator>>(istream& is, Polynomial& poly) {
-    float coef;
-    int exp, n;
+//---
+
+//--- AvailableList ---
+template <class T>
+class AvailableList {
+private:
+    static ChainNode<T>* head;
+public:
+    static ChainNode<T>* getNode() {
+        if (!head) return nullptr;
+        ChainNode<T>* node = head;
+        head = head->next;
+        node->next = nullptr;
+        return node;
+    }
+
+    static void returnNode(ChainNode<T>* node) {
+        if (!node) return;
+        node->next = head;
+        head = node;
+    }
+};
+
+template <class T>
+ChainNode<T>* AvailableList<T>::head = nullptr;
+//---
+
+//--- Chain ---
+template <class T>
+class Chain {
+    friend class ChainIterator<T>;
+private:
+    ChainNode<T>* head;
+
+public:
+    Chain() : head(nullptr) {}
+
+    ~Chain() {
+        while (head) {
+            ChainNode<T>* tmp = head;
+            head = head->next;
+            AvailableList<T>::returnNode(tmp);
+        }
+    }
+
+    ChainIterator<T> begin() const { return ChainIterator<T>(head); }
+    ChainIterator<T> end() const { return ChainIterator<T>(nullptr); }
+
+    void insert(int index, const T& e) {
+        // 先拿節點
+        ChainNode<T>* node = AvailableList<T>::getNode();
+        if (!node) node = new ChainNode<T>(e);
+        else node->element = e;
+
+        //--- 超出範圍處理（index小於0）---
+        if (index < 0) {
+            AvailableList<T>::returnNode(node);   // <<< 超出範圍：回收節點
+            return;
+        }
+
+        if (index == 0) {
+            node->next = head;
+            head = node;
+            return;
+        }
+
+        //--- 如果head為空但inde大於零的話就代表超出範圍 ---
+        if (!head) {
+            AvailableList<T>::returnNode(node);   // <<< 超出範圍：回收節點
+            return;
+        }
+
+        //--- 走到 index-1 的位置 ---
+        ChainNode<T>* prev = head;
+        for (int i = 0; i < index - 1; i++) {
+            if (!prev) {
+                AvailableList<T>::returnNode(node);   //超出範圍的話就回收節點
+                return;
+            }
+            prev = prev->next;
+        }
+
+        //--- 如果prev走到nullptr代表index超出串列長度 ---
+        if (!prev) {
+            AvailableList<T>::returnNode(node);   // 只要超出範圍的話就回收節點
+            return;
+        }
+        node->next = prev->next;
+        prev->next = node;
+    }
+};
+
+#endif
+
+```
+```cpp
+#ifndef POLYNOMIAL_H
+#define POLYNOMIAL_H
+
+#include "Chain.h"
+
+struct Term {
+    double coef;
+    int exp;
+    Term(double c = 0, int e = 0) : coef(c), exp(e) {}
+};
+
+class Polynomial {
+    friend ostream& operator<<(ostream&, const Polynomial&);
+    friend istream& operator>>(istream&, Polynomial&);
+private:
+    Chain<Term> terms;
+public:
+    Polynomial() {}
+
+    void newTerm(double coef, int exp) {
+        if (coef == 0) return;
+
+        int index = 0;
+        for (ChainIterator<Term> it = terms.begin(); it != terms.end(); ++it, ++index) {
+            if (it->exp < exp) {
+                terms.insert(index, Term(coef, exp));
+                return;
+            }
+            if (it->exp == exp) {
+                it->coef += coef;
+                return;
+            }
+        }
+        terms.insert(index, Term(coef, exp));
+    }
+
+    Polynomial operator+(const Polynomial& b) const {
+        Polynomial r;
+        auto it1 = terms.begin();
+        auto it2 = b.terms.begin();
+
+        while (it1 != terms.end() && it2 != b.terms.end()) {
+            if (it1->exp > it2->exp) {
+                r.newTerm(it1->coef, it1->exp);
+                ++it1;
+            } else if (it1->exp < it2->exp) {
+                r.newTerm(it2->coef, it2->exp);
+                ++it2;
+            } else {
+                r.newTerm(it1->coef + it2->coef, it1->exp);
+                ++it1; ++it2;
+            }
+        }
+
+        while (it1 != terms.end()) {
+            r.newTerm(it1->coef, it1->exp);
+            ++it1;
+        }
+        while (it2 != b.terms.end()) {
+            r.newTerm(it2->coef, it2->exp);
+            ++it2;
+        }
+        return r;
+    }
+
+    double Evaluate(double x) const {
+        double result = 0;
+        for (auto it = terms.begin(); it != terms.end(); ++it) {
+            double p = 1;
+            for (int i = 0; i < it->exp; i++) p *= x;
+            result += it->coef * p;
+        }
+        return result;
+    }
+};
+
+inline istream& operator>>(istream& is, Polynomial& p) {
+    int n;
     is >> n;
     while (n--) {
-        is >> coef >> exp;
-        poly.newTerm(coef, exp);
+        double c; int e;
+        is >> c >> e;
+        p.newTerm(c, e);
     }
     return is;
 }
-// operator<<：輸出
-ostream& operator<<(ostream& os, const Polynomial& poly) {
-    for (int i = 0; i < poly.terms; ++i) {
-        if (i > 0) os << "+";
-        os << poly.termArray[i].coef << "X^" << poly.termArray[i].exp;
+
+inline ostream& operator<<(ostream& os, const Polynomial& p) {
+    bool first = true;
+    for (auto it = p.terms.begin(); it != p.terms.end(); ++it) {
+        if (!first) os << " + ";
+        first = false;
+        os << it->coef;
+        if (it->exp > 0) os << "x^" << it->exp;
     }
+    if (first) os << "0";
     return os;
 }
-// Add()：兩個多項式相加
-Polynomial Polynomial::Add(const Polynomial& b) const {
-    Polynomial r;
-    int i = 0, j = 0;
-    while (i < terms && j < b.terms) {
-        if (termArray[i].exp == b.termArray[j].exp) {
-            float s = termArray[i].coef + b.termArray[j].coef;
-            if (s) r.newTerm(s, termArray[i].exp);
-            ++i; ++j;
-        } else if (termArray[i].exp < b.termArray[j].exp) {
-            r.newTerm(b.termArray[j].coef, b.termArray[j].exp);
-            ++j;
-        } else {
-            r.newTerm(termArray[i].coef, termArray[i].exp);
-            ++i;
-        }
-    }
-    while (i < terms) { r.newTerm(termArray[i].coef, termArray[i].exp); ++i; }
-    while (j < b.terms) { r.newTerm(b.termArray[j].coef, b.termArray[j].exp); ++j; }
-    return r;
-}
-// newTerm()：在多項式中新增一個項目
-void Polynomial::newTerm(const float theCoef, const int theExp) {
-    if (theCoef == 0) return;
-    if (terms == capacity) {
-        capacity *= 2;
-        Term* temp = new Term[capacity];
-        for (int i = 0; i < terms; ++i) temp[i] = termArray[i];
-        delete[] termArray;
-        termArray = temp;
-    }
-    termArray[terms].coef = theCoef;
-    termArray[terms].exp = theExp;
-    ++terms;
-}
+
+#endif
+
+```
+```cpp
+#include <iostream>
+#include "Polynomial.h"
+using namespace std;
 
 int main() {
-    Polynomial a, b, c;
-    cin >> a >> b;
-    c = a.Add(b);
-    cout << c << endl;// 輸出結果
+    Polynomial A, B;
+    double x;
+
+    cin >> A >> B;
+    cin >> x;
+
+    cout << "A = " << A << endl;
+    cout << "B = " << B << endl;
+    cout << "A + B = " << (A + B) << endl;
+    cout << "A(" << x << ") = " << A.Evaluate(x) << endl;
+
     return 0;
 }
 
-}
 ```
 
-
 ## 效能分析
-| 函式 | 功能 | 時間複雜度 | 空間複雜度 |
+| 操作項目 | 時間複雜度 | 空間複雜度 | 說明 |
 |----------|--------------|----------|----------|
-| $newTerm()$   | 新增新項 | $O(1)$、擴容時 $O(n)$    | $O(n)$        |
-| $Add()$   | 多項式加法 | $O(n+m)$        | $O(max(n,m))$        |
-| $operator>>$   | 輸入 | $O(n)$        | $O(n)$        |
-| $operator<<$   | 輸出 | $O(n)$       | $O(1)$       |
+| $newTerm(coef, exp)$   | $O(n)$ | $O(1)$    | 插入新項時需依指數順序走訪串列        |
+| $operator+$   | $O(n + m)$ | $O(n+m)$        | 以 $Iterator$ 合併兩個已排序多項式 每個項只處理一次        |
+| $operator-$   | $O(n + m)$ | $O(n + m)$        | 跟加法流程相同，只有係數符號不同        |
+| $operator*$   | $O(n × m)$ | $O(n × m)$       | 每一項與另一多項式所有項相乘       |
+| $Evaluate(x)$   | $O(n × d)$ | $O(1))$       | 對每一項計算 x 的指數次方並累加       |
+| 拷貝建構子   | $O(n)$ | $O(n)$       | 逐項複製原多項式的所有節點       |
+| 指派運算子   | $O(n + m)$ | $O(n)$       | 回收原有節點 再複製新多項式內容       |
+| 解構子   | $O(n)$ | $O(1)$       | 將所有節點回收到Available List不立即釋放記憶體       |
 
 ## 測試與驗證 
 
@@ -186,7 +306,7 @@ int main() {
 |----------|--------------|----------|----------|
 | 測試一   | $3$ | $8X^2+3X^1+2X^0$    | $8X^2+3X^1+2X^0$        |
 || $5$ $2$ |||
-|| $3$ $1$ |||
+|| $3$ $1$ ||| 
 || $7$ $0$ |||
 || $2$ |||
 || $3$ $2$ |||
