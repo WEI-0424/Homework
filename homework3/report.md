@@ -399,16 +399,22 @@ int main() {
 ### 編譯與執行指令
 
 ```shell
-cd "/Applications/code/" && g++ polynomial_class.cpp -o polynomial_class && "/Applications/code/"polynomial_class
-wei@Toaster code % cd "/Applications/code/" && g++ polynomial_class.cpp -o polynomial_class && "/Applications/code/"polynomial_class
+cd "/Applications/code/" && g++ polynomial_homework3.cpp -o  && polynomial_homework3&&"/Applications/code/"polynomial_homework3
+wei@Mac code % cd "/Applications/code/" && g++ polynomial_homework3.cpp -o polynomial_homework3 && "/Applications/code/"polynomial_homework3
 3
-5 2
-3 1
-7 0
-2 
-3 2
--5 0
-8X^2+3X^1+2X^0
+3 4
+2 2
+1 0
+2
+5 3
+4 1
+2
+A = 3x^4 + 2x^2 + 1
+B = 5x^3 + 4x^1
+A + B = 3x^4 + 5x^3 + 2x^2 + 4x^1 + 1
+A - B = 3x^4 + -5x^3 + 2x^2 + -4x^1 + 1
+A * B = 15x^7 + 22x^5 + 13x^3 + 4x^1
+A(2) = 57
 ```
 ## 效能量測
 在輸入項數增加時，程式運算時間成線性增長。
