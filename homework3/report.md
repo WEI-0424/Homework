@@ -20,145 +20,153 @@
 ## 程式實作
 
 ```cpp
-//Chain.h
 #ifndef CHAIN_H
 #define CHAIN_H
 
 #include <iostream>
 using namespace std;
 
-template <class T> class Chain;
-template <class T> class ChainIterator;
-template <class T> class AvailableList;
+template<class T> class Chain;
+template<class T> class ChainIter;
+template<class T> class Avail;
 
 //--- ChainNode ---
-template <class T>
-class ChainNode {
+template<class T>
+class Node {
     friend class Chain<T>;
-    friend class ChainIterator<T>;
-    friend class AvailableList<T>;
+    friend class ChainIter<T>;
+    friend class Avail<T>;
 private:
-    T element;
-    ChainNode<T>* next;
+    T data;
+    Node* next;
 public:
-    ChainNode() : next(nullptr) {}
-    ChainNode(const T& e) : element(e), next(nullptr) {}
+    Node(): next(nullptr) {}
+    Node(const T& x): data(x), next(nullptr) {}
 };
-//---
+//--- end ChainNode ---
+
+
+//--- AvailableList ---
+template<class T>
+class Avail {
+private:
+    static Node<T>* pool;
+public:
+    static Node<T>* take() {
+        if (!pool) return nullptr;
+        Node<T>* p = pool;
+        pool = pool->next;
+        p->next = nullptr;
+        return p;
+    }
+
+    static void give(Node<T>* first) {
+        if (!first) return;
+        Node<T>* last = first;
+        while (last->next) last = last->next;
+        last->next = pool;
+        pool = first;
+    }
+
+    static Node<T>* make(const T& x) {
+        Node<T>* p = take();
+        if (!p) p = new Node<T>(x);
+        else p->data = x;
+        return p;
+    }
+};
+
+template<class T>
+Node<T>* Avail<T>::pool = nullptr;
+//--- end AvailableList ---
+
 
 //--- ChainIterator ---
-template <class T>
-class ChainIterator {
+template<class T>
+class ChainIter {
 private:
-    ChainNode<T>* current;
+    Node<T>* cur;
 public:
-    ChainIterator(ChainNode<T>* start = nullptr) : current(start) {}
+    ChainIter(Node<T>* p = nullptr): cur(p) {}
 
-    T& operator*() const { return current->element; }
-    T* operator->() const { return &current->element; }
+    T& operator*() const { return cur->data; }
+    T* operator->() const { return &(cur->data); }
 
-    ChainIterator& operator++() {
-        if (current) current = current->next;
+    ChainIter& operator++() {
+        if (cur) cur = cur->next;
         return *this;
     }
 
-    bool operator!=(const ChainIterator& rhs) const {
-        return current != rhs.current;
-    }
+    bool operator!=(const ChainIter& rhs) const { return cur != rhs.cur; }
+    bool operator==(const ChainIter& rhs) const { return cur == rhs.cur; }
 };
-//---
+//--- end ChainIterator ---
 
-//--- AvailableList ---
-template <class T>
-class AvailableList {
-private:
-    static ChainNode<T>* head;
-public:
-    static ChainNode<T>* getNode() {
-        if (!head) return nullptr;
-        ChainNode<T>* node = head;
-        head = head->next;
-        node->next = nullptr;
-        return node;
-    }
-
-    static void returnNode(ChainNode<T>* node) {
-        if (!node) return;
-        node->next = head;
-        head = node;
-    }
-};
-
-template <class T>
-ChainNode<T>* AvailableList<T>::head = nullptr;
-//---
 
 //--- Chain ---
-template <class T>
+template<class T>
 class Chain {
-    friend class ChainIterator<T>;
 private:
-    ChainNode<T>* head;
-
+    Node<T>* head;
 public:
-    Chain() : head(nullptr) {}
+    Chain(): head(nullptr) {}
 
-    ~Chain() {
-        while (head) {
-            ChainNode<T>* tmp = head;
-            head = head->next;
-            AvailableList<T>::returnNode(tmp);
-        }
+    Chain(const Chain& other): head(nullptr) {
+        int idx = 0;
+        for (ChainIter<T> it = other.begin(); it != other.end(); ++it, ++idx)
+            insert(idx, *it);
     }
 
-    ChainIterator<T> begin() const { return ChainIterator<T>(head); }
-    ChainIterator<T> end() const { return ChainIterator<T>(nullptr); }
+    Chain& operator=(const Chain& other) {
+        if (this == &other) return *this;
+        clear();
+        int idx = 0;
+        for (ChainIter<T> it = other.begin(); it != other.end(); ++it, ++idx)
+            insert(idx, *it);
+        return *this;
+    }
 
-    void insert(int index, const T& e) {
-        // 先拿節點
-        ChainNode<T>* node = AvailableList<T>::getNode();
-        if (!node) node = new ChainNode<T>(e);
-        else node->element = e;
+    ~Chain() { clear(); }
 
-        //--- 超出範圍處理（index小於0）---
-        if (index < 0) {
-            AvailableList<T>::returnNode(node);   // <<< 超出範圍：回收節點
+    void clear() {
+        Avail<T>::give(release());
+    }
+
+    Node<T>* release() {
+        Node<T>* old = head;
+        head = nullptr;
+        return old;
+    }
+
+    ChainIter<T> begin() const { return ChainIter<T>(head); }
+    ChainIter<T> end()   const { return ChainIter<T>(nullptr); }
+
+    void insert(int idx, const T& x) {
+        Node<T>* n = Avail<T>::make(x);
+
+        if (idx <= 0 || !head) {
+            n->next = head;
+            head = n;
             return;
         }
 
-        if (index == 0) {
-            node->next = head;
-            head = node;
-            return;
-        }
-
-        //--- 如果head為空但inde大於零的話就代表超出範圍 ---
-        if (!head) {
-            AvailableList<T>::returnNode(node);   // <<< 超出範圍：回收節點
-            return;
-        }
-
-        //--- 走到 index-1 的位置 ---
-        ChainNode<T>* prev = head;
-        for (int i = 0; i < index - 1; i++) {
-            if (!prev) {
-                AvailableList<T>::returnNode(node);   //超出範圍的話就回收節點
-                return;
-            }
+        Node<T>* prev = head;
+        for (int i = 0; i < idx - 1 && prev; ++i)
             prev = prev->next;
-        }
 
-        //--- 如果prev走到nullptr代表index超出串列長度 ---
         if (!prev) {
-            AvailableList<T>::returnNode(node);   // 只要超出範圍的話就回收節點
+            Avail<T>::give(n);
             return;
         }
-        node->next = prev->next;
-        prev->next = node;
+
+        n->next = prev->next;
+        prev->next = n;
     }
 };
+//--- end Chain ---
 
 #endif
+
 
 ```
 ```cpp
@@ -166,124 +174,179 @@ public:
 #define POLYNOMIAL_H
 
 #include "Chain.h"
+#include <iostream>
+using namespace std;
 
+
+//--- Term ---
 struct Term {
-    double coef;
-    int exp;
-    Term(double c = 0, int e = 0) : coef(c), exp(e) {}
+    double c;
+    int e;
+    Term(): c(0), e(0) {}
+    Term(double coef, int exp): c(coef), e(exp) {}
 };
+//--- end Term ---
 
+
+//--- Polynomial ---
 class Polynomial {
-    friend ostream& operator<<(ostream&, const Polynomial&);
-    friend istream& operator>>(istream&, Polynomial&);
+    friend istream& operator>>(istream& is, Polynomial& p);
+    friend ostream& operator<<(ostream& os, const Polynomial& p);
+
 private:
-    Chain<Term> terms;
+    Chain<Term> seq;
+
 public:
     Polynomial() {}
 
-    void newTerm(double coef, int exp) {
+    Polynomial(const Polynomial& other): seq(other.seq) {}
+
+    Polynomial& operator=(const Polynomial& other) {
+        seq = other.seq;
+        return *this;
+    }
+
+    ~Polynomial() {}
+
+    ChainIter<Term> begin() const { return seq.begin(); }
+    ChainIter<Term> end()   const { return seq.end(); }
+
+    void addTerm(double coef, int exp) {
         if (coef == 0) return;
 
-        int index = 0;
-        for (ChainIterator<Term> it = terms.begin(); it != terms.end(); ++it, ++index) {
-            if (it->exp < exp) {
-                terms.insert(index, Term(coef, exp));
+        if (begin() == end()) {
+            seq.insert(0, Term(coef, exp));
+            return;
+        }
+
+        int idx = 0;
+        for (ChainIter<Term> it = begin(); it != end(); ++it, ++idx) {
+            if (it->e == exp) {
+                it->c += coef;
                 return;
             }
-            if (it->exp == exp) {
-                it->coef += coef;
+            if (it->e < exp) {
+                seq.insert(idx, Term(coef, exp));
                 return;
             }
         }
-        terms.insert(index, Term(coef, exp));
+        seq.insert(idx, Term(coef, exp));
     }
 
-    Polynomial operator+(const Polynomial& b) const {
-        Polynomial r;
-        auto it1 = terms.begin();
-        auto it2 = b.terms.begin();
+    Polynomial operator+(const Polynomial& rhs) const {
+        Polynomial result;
+        ChainIter<Term> i = begin();
+        ChainIter<Term> j = rhs.begin();
 
-        while (it1 != terms.end() && it2 != b.terms.end()) {
-            if (it1->exp > it2->exp) {
-                r.newTerm(it1->coef, it1->exp);
-                ++it1;
-            } else if (it1->exp < it2->exp) {
-                r.newTerm(it2->coef, it2->exp);
-                ++it2;
-            } else {
-                r.newTerm(it1->coef + it2->coef, it1->exp);
-                ++it1; ++it2;
+        while (i != end() && j != rhs.end()) {
+            if (i->e > j->e) {
+                result.addTerm(i->c, i->e);
+                ++i;
+            }
+            else if (i->e < j->e) {
+                result.addTerm(j->c, j->e);
+                ++j;
+            }
+            else {
+                double s = i->c + j->c;
+                if (s != 0) result.addTerm(s, i->e);
+                ++i;
+                ++j;
             }
         }
 
-        while (it1 != terms.end()) {
-            r.newTerm(it1->coef, it1->exp);
-            ++it1;
+        while (i != end()) {
+            result.addTerm(i->c, i->e);
+            ++i;
         }
-        while (it2 != b.terms.end()) {
-            r.newTerm(it2->coef, it2->exp);
-            ++it2;
-        }
-        return r;
-    }
 
-    double Evaluate(double x) const {
-        double result = 0;
-        for (auto it = terms.begin(); it != terms.end(); ++it) {
-            double p = 1;
-            for (int i = 0; i < it->exp; i++) p *= x;
-            result += it->coef * p;
+        while (j != rhs.end()) {
+            result.addTerm(j->c, j->e);
+            ++j;
         }
+
         return result;
     }
-};
 
+    Polynomial operator-(const Polynomial& rhs) const {
+        Polynomial neg;
+        for (ChainIter<Term> it = rhs.begin(); it != rhs.end(); ++it)
+            neg.addTerm(-it->c, it->e);
+        return (*this) + neg;
+    }
+
+    Polynomial operator*(const Polynomial& rhs) const {
+        Polynomial result;
+        for (ChainIter<Term> i = begin(); i != end(); ++i)
+            for (ChainIter<Term> j = rhs.begin(); j != rhs.end(); ++j)
+                result.addTerm(i->c * j->c, i->e + j->e);
+        return result;
+    }
+
+    double eval(double x) const {
+        double ans = 0;
+        for (ChainIter<Term> it = begin(); it != end(); ++it) {
+            double p = 1;
+            for (int k = 0; k < it->e; ++k) p *= x;
+            ans += it->c * p;
+        }
+        return ans;
+    }
+};
+//--- end Polynomial ---
+
+
+//--- input operator ---
 inline istream& operator>>(istream& is, Polynomial& p) {
     int n;
-    is >> n;
-    while (n--) {
-        double c; int e;
+    if (!(is >> n)) return is;
+    for (int i = 0; i < n; ++i) {
+        double c;
+        int e;
         is >> c >> e;
-        p.newTerm(c, e);
+        p.addTerm(c, e);
     }
     return is;
 }
+//--- end input operator ---
 
+
+//--- output operator ---
 inline ostream& operator<<(ostream& os, const Polynomial& p) {
     bool first = true;
-    for (auto it = p.terms.begin(); it != p.terms.end(); ++it) {
-        if (!first) os << " + ";
+    for (ChainIter<Term> it = p.begin(); it != p.end(); ++it) {
+        if (!first) os << "+";
         first = false;
-        os << it->coef;
-        if (it->exp > 0) os << "x^" << it->exp;
+
+        if (it->e == 0)
+            os << it->c;
+        else
+            os << it->c << "x^" << it->e;
     }
-    if (first) os << "0";
+    if (first) os << 0;
     return os;
 }
+//--- end output operator ---
 
 #endif
 
 ```
 ```cpp
-#include <iostream>
-#include "Polynomial.h"
-using namespace std;
-
+// main.cpp
 int main() {
     Polynomial A, B;
     double x;
 
-    cin >> A >> B;
-    cin >> x;
+    cin >> A >> B >> x;
 
-    cout << "A = " << A << endl;
-    cout << "B = " << B << endl;
-    cout << "A + B = " << (A + B) << endl;
-    cout << "A(" << x << ") = " << A.Evaluate(x) << endl;
-
+    cout << "A = " << A << "\n";
+    cout << "B = " << B << "\n";
+    cout << "A + B = " << (A + B) << "\n";
+    cout << "A - B = " << (A - B) << "\n";
+    cout << "A * B = " << (A * B) << "\n";
+    cout << "A(" << x << ") = " << A.eval(x) << "\n";
     return 0;
 }
-
 ```
 
 ## 效能分析
