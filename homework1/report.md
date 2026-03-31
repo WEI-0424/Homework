@@ -195,40 +195,17 @@ int main() {
 
 | 測試案例 | 輸入 | 預期輸出 | 實際輸出 |
 |----------|--------------|----------|----------|
-| 測試一   | $3$ | $8X^2+3X^1+2X^0$    | $8X^2+3X^1+2X^0$        |
-|| $5$ $2$ |||
-|| $3$ $1$ |||
-|| $7$ $0$ |||
-|| $2$ |||
-|| $3$ $2$ |||
-|| $-5$ $0$ |||
-| 測試二   | $2$ | $5X^3+5X^1$        | $5X^3+5X^1$        |
-|| $4$ $3$ |||
-|| $2$ $1$ |||
-|| $2$ |||
-|| $1$ $3$ |||
-|| $3$ $1$ |||
-| 測試三   | $3$ | $1X^0$        | $1X^0$        |
-|| $3$ $4$ |||
-|| $-3$ $2$ |||
-|| $1$ $0$ |||
-|| $2$ |||
-|| $-3$ $4$ |||
-|| $3$ $2$ |||
-
+| 測試一   | $Push$ $12,6,8,7,15,3$ | $3,7,6,12,15,8$    | $3,7,6,12,15,8$        |
+| 測試二   | $TOP()$ | $3$        | $3$        |
+| 測試三   | $After$ $POP$ | $6,7,8,12,15$        | $6,7,8,12,15$        |
 ### 編譯與執行指令
 
 ```shell
-cd "/Applications/code/" && g++ polynomial_class.cpp -o polynomial_class && "/Applications/code/"polynomial_class
-wei@Toaster code % cd "/Applications/code/" && g++ polynomial_class.cpp -o polynomial_class && "/Applications/code/"polynomial_class
-3
-5 2
-3 1
-7 0
-2 
-3 2
--5 0
-8X^2+3X^1+2X^0
+cd "/Applications/code/" && g++ max_min_heap.cpp -o max_min_heap && "/Applications/code/"max_min_heap
+wei@Mac code % cd "/Applications/code/" && g++ max_min_heap.cpp -o max_min_heap && "/Applications/code/"max_min_heap
+Min Heap: 3 7 6 12 15 8 
+Top = 3
+After Pop: 6 7 8 12 15
 ```
 ## 效能量測
 在輸入項數增加時，程式運算時間成線性增長。
