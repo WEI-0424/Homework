@@ -583,4 +583,4 @@ wei@Mac code % cd "/Applications/code/" && g++ binary_search_tree_b.cpp -o binar
 、 $BST$ 的結構維護
 、時間複雜度分析
 
-對我來說這些技巧還是有一點困難的，也讓我知道我有哪些部分更需要我努力！
+對我來說這些技巧跟函式還是有一點困難的，也讓我知道我有哪些部分更需要我努力！
