@@ -353,50 +353,49 @@ using namespace std;
 
 // ===== BST 節點結構 =====
 struct Node {
-    int key;
-    Node* left;
-    Node* right;
+    int key;        // 節點的值
+    Node* left;     // 指向左子樹
+    Node* right;    // 指向右子樹
 
-    Node(int k) {
-        key = k;
-        left = nullptr;
-        right = nullptr;
-    }
+    Node(int k) : key(k), left(nullptr), right(nullptr) {}
 };
 
-// ===== 插入節點 =====
-Node* insert(Node* root, int key) {
+// ===== insert：插入節點到 BST =====
+Node* insert(Node* root, int k) {
     if (root == nullptr)
-        return new Node(key);
+        return new Node(k);
 
-    if (key < root->key)
-        root->left = insert(root->left, key);
-    else if (key > root->key)
-        root->right = insert(root->right, key);
+    // 小於根節點 → 插入左子樹
+    if (k < root->key)
+        root->left = insert(root->left, k);
+
+    // 大於根節點 → 插入右子樹
+    else if (k > root->key)
+        root->right = insert(root->right, k);
 
     return root;
 }
 
-// ===== 找右子樹最小節點（inorder successor）=====
+// ===== findMin：找右子樹最小節點 =====
 Node* findMin(Node* root) {
-    while (root != nullptr && root->left != nullptr) {
+    while (root && root->left != nullptr)
         root = root->left;
-    }
+
     return root;
 }
 
-// ===== 刪除節點函式 =====
-Node* deleteNode(Node* root, int key) {
+// ===== deleteNode：刪除指定 key 的節點 =====
+Node* deleteNode(Node* root, int k) {
     if (root == nullptr)
         return nullptr;
 
     // 如果 key 比目前節點小 → 往左找
-    if (key < root->key) {
-        root->left = deleteNode(root->left, key);
+    if (k < root->key) {
+        root->left = deleteNode(root->left, k);
     }
     // 如果 key 比目前節點大 → 往右找
-    else if (key > root->key) {
-        root->right = deleteNode(root->right, key);
+    else if (k > root->key) {
+        root->right = deleteNode(root->right, k);
     }
     else {
         // 情況 1：沒有子節點
@@ -425,11 +424,10 @@ Node* deleteNode(Node* root, int key) {
             root->right = deleteNode(root->right, temp->key);
         }
     }
-
     return root;
 }
 
-// ===== 中序走訪（印出 BST）=====
+// ===== inorder：中序走訪 BST（由小到大輸出）=====
 void inorder(Node* root) {
     if (root != nullptr) {
         inorder(root->left);
@@ -438,7 +436,7 @@ void inorder(Node* root) {
     }
 }
 
-// ===== 清除整棵樹 =====
+// ===== clearTree：刪除整棵樹（釋放記憶體）=====
 void clearTree(Node* root) {
     if (root != nullptr) {
         clearTree(root->left);
@@ -450,15 +448,15 @@ void clearTree(Node* root) {
 // ===== 主程式 main =====
 int main() {
     Node* root = nullptr;
-    int n, key;
+    int n, x, k;
 
     cout << "請輸入節點數量: ";
     cin >> n;
 
     cout << "請輸入 " << n << " 個節點值: ";
     for (int i = 0; i < n; i++) {
-        cin >> key;
-        root = insert(root, key);
+        cin >> x;
+        root = insert(root, x);
     }
 
     cout << "原本 BST 的 inorder: ";
@@ -466,15 +464,16 @@ int main() {
     cout << endl;
 
     cout << "請輸入要刪除的 key: ";
-    cin >> key;
+    cin >> k;
 
-    root = deleteNode(root, key);
+    root = deleteNode(root, k);
 
     cout << "刪除後 BST 的 inorder: ";
     inorder(root);
     cout << endl;
 
     clearTree(root);
+
     return 0;
 }
 ```
@@ -511,12 +510,12 @@ $Time$ $Complexity$ $of$ $Delete$ = $O(h)$
 # $(A)$ 小題程式
 | $n$ | $height$ | $height/log2n$ |
 |----------|--------------|----------|
-| $100$   | $13$ | $1.95$    |
-| $500$   | $18$ | $2.01$        |
+| $100$   | $11$ | $1.65$    |
+| $500$   | $19$ | $2.11$        |
 | $1000$   | $20$ | $2.00$        |
-| $2000$   | $22$ | $1.99$        |
-| $5000$  | $25$ | $2.02$        |
-| $10000$  | $27$ | $2.03$        |
+| $2000$   | $27$ | $2.46$        |
+| $5000$  | $25$ | $2.03$        |
+| $10000$  | $31$ | $2.33$        |
 
 # $(B)$ 小題程式
 | 測試案例 | 輸入 $BST$ | 刪除 $key$ | 刪除後 $inorder$ |
@@ -525,24 +524,36 @@ $Time$ $Complexity$ $of$ $Delete$ = $O(h)$
 | 測試二   | $10$ $7$ $12$ $3$ $11$ $9$ $16$  | $12$        | $3$ $7$ $9$ $10$ $11$ $16$        |
 | 測試三   | $10$ $7$ $12$ $3$ $11$ $9$ $16$ | $10$        | $3$ $7$ $9$ $11$ $12$ $16$        |
 ### 編譯與執行指令
-
+# $(A)$ 小題程式
 ```shell
-cd "/Applications/code/" && g++ max_min_heap.cpp -o max_min_heap && "/Applications/code/"max_min_heap
-wei@Mac code % cd "/Applications/code/" && g++ max_min_heap.cpp -o max_min_heap && "/Applications/code/"max_min_heap
-Min Heap: 3 7 6 12 15 8 
-Top = 3
-After Pop: 6 7 8 12 15
+ei@Mac code % cd "/Applications/code/" && g++ binary_search_tree_a.cpp -o binary_search_tree_a && "/Applications/code/"binary_search_tree_a
+n = 100, height = 11, height/log2(n) = 1.65566
+n = 500, height = 19, height/log2(n) = 2.11917
+n = 1000, height = 20, height/log2(n) = 2.00687
+n = 2000, height = 27, height/log2(n) = 2.4622
+n = 5000, height = 25, height/log2(n) = 2.03455
+n = 10000, height = 31, height/log2(n) = 2.33298
+```
+# $(B)$ 小題程式
+```shell
+wei@Mac code % cd "/Applications/code/" && g++ binary_search_tree_b.cpp -o binary_search_tree_b && "/Applications/code/"binary_search_tree_b
+請輸入節點數量: 10
+請輸入 10 個節點值: 10 7 12 3 11 9 16 2 5 14
+原本 BST 的 inorder: 2 3 5 7 9 10 11 12 14 16 
+請輸入要刪除的 key: 12
+刪除後 BST 的 inorder: 2 3 5 7 9 10 11 14 16 
 ```
 ## 效能量測
-在 $heap$ 中，插入與刪除都只需要沿著樹高調整，因此隨著元素素量增加，時間就會成對數成長
+$(A)$ 小題
+在不同的 $n$值下測量BST高度
 
 例如:
 
-| $n$ | $Push/POP$ 平均時間 | 
-|----------|--------------|
-| $10$   | $很短$ |
-| $100$   | $稍增$ | 
-| $1000$   | $維持對數增長趨勢$ | 
+| $n$ | $height$ | $log2(n)$ | $height/log2(n)$ |
+|----------|--------------|----------|----------|
+| $100$   | $11$ | $6.64$    | $1.66$       |
+| $1000$   | $20$  | $9.97$        | $2.01$        |
+| $10000$   | $31$ | $13.28$        | $2.33$        |
 
 這就代表最小堆積的主要操作符合 $O(log n)$ 的設計 
 
