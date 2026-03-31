@@ -11,147 +11,170 @@ $MinPQ$ 與 $MinHeap$ 最小堆積是一種完全二元樹結構，並滿足每�
 ### 解題策略( $How$ $to$ $do$ )
 
 1. #### 抽象類別設計
-   使用類別設計法（ $ADT$ ）
-   
-   $Term$ ：用來儲存一項的係數與指數。
-   
-   而 $Polynomial$ :包含一個Term陣列與項目數
-2. #### 多項式加法演算法
-   使用兩個指標 $aPos$、 $bPos$ 逐一比較兩個多項式的項：
-
-   若指數相同 → 係數相加後插入結果。
-
-   若一邊指數較大 → 優先插入該項。
-3. #### 動態記憶體管理
-   初始容量 2。若項目超出容量，自動擴充成兩倍。
+   要先定義一個 $MinPQ$ 抽象類別，包含：
+   • $IsEmpty()$ 判斷是否為空
+   • $Top()$ 取得最小值
+   • $Push()$ 插入元素
+   • $POP()$ 刪除最小值
+2. #### 最小堆積結構
+   使用動態陣列來表示 $heap$ ，根節點放在 $heap[1]$ ，如此可利用：
+	•	父節點：i/2
+	•	左子節點：2*i
+	•	右子節點：2*i+1
+3. #### 插入演算法
+   新元素放在後面，再用上濾方式與父節點比較，如果比較小就往上移動直到與 $min$ $heap$ 性質符合
+4. #### 刪除演算法
+   再刪除跟節點後，把最後一個元素補到根之後再用下濾的方式往下調整，才能保持 $min$ $heap$的結構
+5. #### 動態記憶體管理
+   當陣列的空間不夠時，就會自動擴充兩倍來避免容量空間不夠的問題
 
 ## 程式實作
 
 ```cpp
-/*
-Algorithm Design:
-1. 使用兩個類別 Term 與 Polynomial 來表示多項式。
-2. newTerm(): 將輸入的係數與指數加入 termArray，如果容量不夠就擴充成兩倍。
-3. Add(): 使用雙指標走訪兩個多項式，若指數相同則係數相加。
-4. operator>>(): 輸入項數與 (coef, exp)。
-5. operator<<(): 依序輸出每一項，格式為 coefX^exp。
-*/
 #include <iostream>
+#include <stdexcept>
 using namespace std;
 
-class Polynomial;
-
-//用來儲存一項的係數與指數
-class Term {
-    friend Polynomial;
-    friend ostream& operator<<(ostream &output, const Polynomial &Poly);
-private:
-    int exp;// 指數
-    float coef;// 係數
-};
-
-// Polynomial 類別：用動態陣列表示多項式
-class Polynomial {
-private:
-    Term *termArray; // 指向 Term 陣列
-    int capacity; // 陣列容量
-    int terms; // 目前多項式的項數
+// ===== 抽象類別 MinPQ =====
+template <class T>
+class MinPQ {
 public:
-   // 建構子：初始化容量與項數
-    Polynomial(): capacity(2), terms(0) {
-        termArray = new Term[capacity];
-    }
- // 解構子：釋放動態記憶體
-    ~Polynomial() {
-        delete [] termArray;
-    }
- // 拷貝建構子：避免淺拷貝造成重複釋放
-    Polynomial(const Polynomial& other): capacity(other.capacity), terms(other.terms) {
-        termArray = new Term[capacity];
-        for (int i = 0; i < terms; ++i) termArray[i] = other.termArray[i];
-    }
-// 指派運算子：實作深拷貝
-    Polynomial& operator=(const Polynomial& other) {
-        if (this == &other) return *this;
-        Term* newArr = new Term[other.capacity];
-        for (int i = 0; i < other.terms; ++i) newArr[i] = other.termArray[i];
-        delete[] termArray;
-        termArray = newArr;
-        capacity = other.capacity;
-        terms = other.terms;
-        return *this;
-    }
-// 多項式加法
-    Polynomial Add(const Polynomial& b) const;
-// 新增新項
-    void newTerm(const float newcoef, const int newexp);
-// 輸入與輸出運算子
-    friend istream& operator>>(istream& is, Polynomial& poly);
-    friend ostream& operator<<(ostream& os, const Polynomial& poly);
+    virtual ~MinPQ() {}
+    virtual bool IsEmpty() const = 0;
+    virtual const T& Top() const = 0;
+    virtual void Push(const T&) = 0;
+    virtual void Pop() = 0;
 };
-// operator>>：輸入
-istream& operator>>(istream& is, Polynomial& poly) {
-    float coef;
-    int exp, n;
-    is >> n;
-    while (n--) {
-        is >> coef >> exp;
-        poly.newTerm(coef, exp);
+
+// ===== MinHeap 類別宣告 =====
+template <class T>
+class MinHeap : public MinPQ<T> {
+private:
+    T* heap;
+    int capacity;
+    int currentSize;
+
+    void ChangeSize();
+
+public:
+    MinHeap(int theCapacity = 10);
+    ~MinHeap();
+
+    bool IsEmpty() const override;
+    const T& Top() const override;
+    void Push(const T& x) override;
+    void Pop() override;
+
+    void PrintHeap() const;
+};
+
+// ===== ChangeSize：擴充陣列大小 =====
+template <class T>
+void MinHeap<T>::ChangeSize() {
+    capacity *= 2;
+    T* newHeap = new T[capacity];
+    for (int i = 1; i <= currentSize; i++) {
+        newHeap[i] = heap[i];
     }
-    return is;
+    delete[] heap;
+    heap = newHeap;
 }
-// operator<<：輸出
-ostream& operator<<(ostream& os, const Polynomial& poly) {
-    for (int i = 0; i < poly.terms; ++i) {
-        if (i > 0) os << "+";
-        os << poly.termArray[i].coef << "X^" << poly.termArray[i].exp;
+
+// ===== 建構子與解構子 =====
+template <class T>
+MinHeap<T>::MinHeap(int theCapacity) {
+    capacity = theCapacity;
+    currentSize = 0;
+    heap = new T[capacity];
+}
+
+template <class T>
+MinHeap<T>::~MinHeap() {
+    delete[] heap;
+}
+
+// ===== IsEmpty：判斷是否為空 =====
+template <class T>
+bool MinHeap<T>::IsEmpty() const {
+    return currentSize == 0;
+}
+
+// ===== Top：回傳最小值 =====
+template <class T>
+const T& MinHeap<T>::Top() const {
+    if (IsEmpty()) throw runtime_error("MinHeap is empty");
+    return heap[1];
+}
+
+// ===== Push：插入元素 =====
+template <class T>
+void MinHeap<T>::Push(const T& x) {
+    if (currentSize == capacity - 1) {
+        ChangeSize();
     }
-    return os;
+
+    int i = ++currentSize;
+    while (i != 1 && x < heap[i / 2]) {
+        heap[i] = heap[i / 2];
+        i /= 2;
+    }
+    heap[i] = x;
 }
-// Add()：兩個多項式相加
-Polynomial Polynomial::Add(const Polynomial& b) const {
-    Polynomial r;
-    int i = 0, j = 0;
-    while (i < terms && j < b.terms) {
-        if (termArray[i].exp == b.termArray[j].exp) {
-            float s = termArray[i].coef + b.termArray[j].coef;
-            if (s) r.newTerm(s, termArray[i].exp);
-            ++i; ++j;
-        } else if (termArray[i].exp < b.termArray[j].exp) {
-            r.newTerm(b.termArray[j].coef, b.termArray[j].exp);
-            ++j;
-        } else {
-            r.newTerm(termArray[i].coef, termArray[i].exp);
-            ++i;
+
+// ===== Pop：刪除最小值 =====
+template <class T>
+void MinHeap<T>::Pop() {
+    if (IsEmpty()) throw runtime_error("MinHeap is empty");
+
+    T last = heap[currentSize--];
+    int i = 1;
+    int child = 2;
+
+    while (child <= currentSize) {
+        if (child < currentSize && heap[child + 1] < heap[child]) {
+            child++;
         }
+
+        if (last <= heap[child]) break;
+
+        heap[i] = heap[child];
+        i = child;
+        child *= 2;
     }
-    while (i < terms) { r.newTerm(termArray[i].coef, termArray[i].exp); ++i; }
-    while (j < b.terms) { r.newTerm(b.termArray[j].coef, b.termArray[j].exp); ++j; }
-    return r;
-}
-// newTerm()：在多項式中新增一個項目
-void Polynomial::newTerm(const float theCoef, const int theExp) {
-    if (theCoef == 0) return;
-    if (terms == capacity) {
-        capacity *= 2;
-        Term* temp = new Term[capacity];
-        for (int i = 0; i < terms; ++i) temp[i] = termArray[i];
-        delete[] termArray;
-        termArray = temp;
-    }
-    termArray[terms].coef = theCoef;
-    termArray[terms].exp = theExp;
-    ++terms;
+
+    heap[i] = last;
 }
 
+// ===== PrintHeap：輸出目前 heap =====
+template <class T>
+void MinHeap<T>::PrintHeap() const {
+    for (int i = 1; i <= currentSize; i++) {
+        cout << heap[i] << " ";
+    }
+    cout << endl;
+}
+
+// ===== 主程式 main =====
 int main() {
-    Polynomial a, b, c;
-    cin >> a >> b;
-    c = a.Add(b);
-    cout << c << endl;// 輸出結果
-    return 0;
-}
+    MinHeap<int> h;
 
+    h.Push(12);
+    h.Push(6);
+    h.Push(8);
+    h.Push(7);
+    h.Push(15);
+    h.Push(3);
+
+    cout << "Min Heap: ";
+    h.PrintHeap();
+
+    cout << "Top = " << h.Top() << endl;
+
+    h.Pop();
+    cout << "After Pop: ";
+    h.PrintHeap();
+
+    return 0;
 }
 ```
 
@@ -159,10 +182,12 @@ int main() {
 ## 效能分析
 | 函式 | 功能 | 時間複雜度 | 空間複雜度 |
 |----------|--------------|----------|----------|
-| $newTerm()$   | 新增新項 | $O(1)$、擴容時 $O(n)$    | $O(n)$        |
-| $Add()$   | 多項式加法 | $O(n+m)$        | $O(max(n,m))$        |
-| $operator>>$   | 輸入 | $O(n)$        | $O(n)$        |
-| $operator<<$   | 輸出 | $O(n)$       | $O(1)$       |
+| $IsEmpty()$   | 判斷 $heap$ 是否為空 | $O(1)$    | $O(n)$        |
+| $Top()$   | 取得最小元素 | $O(1)$        | $O(1)$        |
+| $Push()$   | 插入元素 | $O(log n)$        | $O(1)$        |
+| $POP()$   | 刪除最小元素 | $O(log n)$       | $O(1)$       |
+| $ChangeSize()$   | 擴充陣列 | $O(n)$       | $O(n)$       |
+| $PrintHeap()$   | 輸出 $heap$ 陣列 | $O(n)$       | $O(1)$       |
 
 ## 測試與驗證 
 
