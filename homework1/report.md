@@ -246,194 +246,284 @@ $BST$ 的特性是：
 
 ### 解題策略( $How$ $to$ $do$ )
 
-1. #### 抽象類別設計
-   要先定義一個 $MinPQ$ 抽象類別，包含：
-   • $IsEmpty()$ 判斷是否為空
-   • $Top()$ 取得最小值
-   • $Push()$ 插入元素
-   • $POP()$ 刪除最小值
-2. #### 最小堆積結構
-   使用動態陣列來表示 $heap$ ，根節點放在 $heap[1]$ ，如此可利用：
-	•	父節點：i/2
-	•	左子節點：2*i
-	•	右子節點：2*i+1
-3. #### 插入演算法
-   新元素放在後面，再用上濾方式與父節點比較，如果比較小就往上移動直到與 $min$ $heap$ 性質符合
-4. #### 刪除演算法
-   再刪除跟節點後，把最後一個元素補到根之後再用下濾的方式往下調整，才能保持 $min$ $heap$的結構
-5. #### 動態記憶體管理
-   當陣列的空間不夠時，就會自動擴充兩倍來避免容量空間不夠的問題
-
+1. #### 節點結構設計
+   使用 $Node$ 結構表示 $BST$ 節點，每個節點包含：
+	•	$key$
+	•	$left$
+	•	$right$
+2. #### 隨機插入與高度量測
+   從空樹開始，利用亂數產生器產生 $n$ 個數值，逐一插入 $BST$。插入完後，再使用遞迴方式計算高度
+3. #### 刪除演算法
+   刪除 $key$ 會時分成三種情況：
+	•	無子節點：直接刪除
+	•	只有一個子節點：由子節點取代
+	•	有兩個子節點：找右子樹最小值取代，再刪除該節點
+4. #### 遞迴實作
+   插入、刪除、搜尋最小值、高度計算都使用遞迴或簡單迭代方式
 ## 程式實作
-
+$(A)$ 小題程式碼
 ```cpp
 #include <iostream>
-#include <stdexcept>
+#include <cstdlib>
+#include <ctime>
+#include <cmath>
 using namespace std;
 
-// ===== 抽象類別 MinPQ =====
-template <class T>
-class MinPQ {
-public:
-    virtual ~MinPQ() {}
-    virtual bool IsEmpty() const = 0;
-    virtual const T& Top() const = 0;
-    virtual void Push(const T&) = 0;
-    virtual void Pop() = 0;
+// ===== BST 節點結構 =====
+struct Node {
+    int key;
+    Node* left;
+    Node* right;
+
+    Node(int k) {
+        key = k;
+        left = nullptr;
+        right = nullptr;
+    }
 };
 
-// ===== MinHeap 類別宣告 =====
-template <class T>
-class MinHeap : public MinPQ<T> {
-private:
-    T* heap;
-    int capacity;
-    int currentSize;
+// ===== 插入節點到 BST =====
+Node* insert(Node* root, int x) {
+    if (root == nullptr)
+        return new Node(x);
 
-    void ChangeSize();
+    if (x < root->key)
+        root->left = insert(root->left, x);
 
-public:
-    MinHeap(int theCapacity = 10);
-    ~MinHeap();
+    else if (x > root->key)
+        root->right = insert(root->right, x);
 
-    bool IsEmpty() const override;
-    const T& Top() const override;
-    void Push(const T& x) override;
-    void Pop() override;
-
-    void PrintHeap() const;
-};
-
-// ===== ChangeSize：擴充陣列大小 =====
-template <class T>
-void MinHeap<T>::ChangeSize() {
-    capacity *= 2;
-    T* newHeap = new T[capacity];
-    for (int i = 1; i <= currentSize; i++) {
-        newHeap[i] = heap[i];
-    }
-    delete[] heap;
-    heap = newHeap;
+    return root;
 }
 
-// ===== 建構子與解構子 =====
-template <class T>
-MinHeap<T>::MinHeap(int theCapacity) {
-    capacity = theCapacity;
-    currentSize = 0;
-    heap = new T[capacity];
+// ===== 計算 BST 高度 =====
+int height(Node* root) {
+    if (root == nullptr)
+        return 0;
+
+    int lh = height(root->left);
+    int rh = height(root->right);
+
+    return 1 + max(lh, rh);
 }
 
-template <class T>
-MinHeap<T>::~MinHeap() {
-    delete[] heap;
-}
+// ===== 釋放整棵樹記憶體 =====
+void clear(Node* root) {
+    if (!root) return;
 
-// ===== IsEmpty：判斷是否為空 =====
-template <class T>
-bool MinHeap<T>::IsEmpty() const {
-    return currentSize == 0;
-}
-
-// ===== Top：回傳最小值 =====
-template <class T>
-const T& MinHeap<T>::Top() const {
-    if (IsEmpty()) throw runtime_error("MinHeap is empty");
-    return heap[1];
-}
-
-// ===== Push：插入元素 =====
-template <class T>
-void MinHeap<T>::Push(const T& x) {
-    if (currentSize == capacity - 1) {
-        ChangeSize();
-    }
-
-    int i = ++currentSize;
-    while (i != 1 && x < heap[i / 2]) {
-        heap[i] = heap[i / 2];
-        i /= 2;
-    }
-    heap[i] = x;
-}
-
-// ===== Pop：刪除最小值 =====
-template <class T>
-void MinHeap<T>::Pop() {
-    if (IsEmpty()) throw runtime_error("MinHeap is empty");
-
-    T last = heap[currentSize--];
-    int i = 1;
-    int child = 2;
-
-    while (child <= currentSize) {
-        if (child < currentSize && heap[child + 1] < heap[child]) {
-            child++;
-        }
-
-        if (last <= heap[child]) break;
-
-        heap[i] = heap[child];
-        i = child;
-        child *= 2;
-    }
-
-    heap[i] = last;
-}
-
-// ===== PrintHeap：輸出目前 heap =====
-template <class T>
-void MinHeap<T>::PrintHeap() const {
-    for (int i = 1; i <= currentSize; i++) {
-        cout << heap[i] << " ";
-    }
-    cout << endl;
+    clear(root->left);
+    clear(root->right);
+    delete root;
 }
 
 // ===== 主程式 main =====
 int main() {
-    MinHeap<int> h;
+    srand((unsigned)time(nullptr)); // 初始化亂數種子
 
-    h.Push(12);
-    h.Push(6);
-    h.Push(8);
-    h.Push(7);
-    h.Push(15);
-    h.Push(3);
+    int testN[] = {100, 500, 1000, 2000, 3000, 5000, 10000};
 
-    cout << "Min Heap: ";
-    h.PrintHeap();
+    for (int i = 0; i < 7; i++) {
+        int n = testN[i];
+        Node* root = nullptr;
 
-    cout << "Top = " << h.Top() << endl;
+        for (int j = 0; j < n; j++) {
+            int x = rand();
+            root = insert(root, x);
+        }
 
-    h.Pop();
-    cout << "After Pop: ";
-    h.PrintHeap();
+        int h = height(root);
+
+        // 計算 height / log2(n)
+        double ratio = h / log2((double)n);
+
+        cout << "n = " << n
+             << ", height = " << h
+             << ", height/log2(n) = " << ratio << endl;
+
+        clear(root);
+    }
 
     return 0;
 }
 ```
+$(B)$ 小題程式碼
+```cpp
+#include <iostream>
+using namespace std;
 
+// ===== BST 節點結構 =====
+struct Node {
+    int key;
+    Node* left;
+    Node* right;
 
+    Node(int k) {
+        key = k;
+        left = nullptr;
+        right = nullptr;
+    }
+};
+
+// ===== 插入節點 =====
+Node* insert(Node* root, int key) {
+    if (root == nullptr)
+        return new Node(key);
+
+    if (key < root->key)
+        root->left = insert(root->left, key);
+    else if (key > root->key)
+        root->right = insert(root->right, key);
+
+    return root;
+}
+
+// ===== 找右子樹最小節點（inorder successor）=====
+Node* findMin(Node* root) {
+    while (root != nullptr && root->left != nullptr) {
+        root = root->left;
+    }
+    return root;
+}
+
+// ===== 刪除節點函式 =====
+Node* deleteNode(Node* root, int key) {
+    if (root == nullptr)
+        return nullptr;
+
+    // 如果 key 比目前節點小 → 往左找
+    if (key < root->key) {
+        root->left = deleteNode(root->left, key);
+    }
+    // 如果 key 比目前節點大 → 往右找
+    else if (key > root->key) {
+        root->right = deleteNode(root->right, key);
+    }
+    else {
+        // 情況 1：沒有子節點
+        if (root->left == nullptr && root->right == nullptr) {
+            delete root;
+            return nullptr;
+        }
+        // 情況 2：只有右子節點
+        else if (root->left == nullptr) {
+            Node* temp = root->right;
+            delete root;
+            return temp;
+        }
+        // 情況 3：只有左子節點
+        else if (root->right == nullptr) {
+            Node* temp = root->left;
+            delete root;
+            return temp;
+        }
+        // 情況 4：有兩個子節點
+        else {
+            Node* temp = findMin(root->right);
+
+            root->key = temp->key;
+
+            root->right = deleteNode(root->right, temp->key);
+        }
+    }
+
+    return root;
+}
+
+// ===== 中序走訪（印出 BST）=====
+void inorder(Node* root) {
+    if (root != nullptr) {
+        inorder(root->left);
+        cout << root->key << " ";
+        inorder(root->right);
+    }
+}
+
+// ===== 清除整棵樹 =====
+void clearTree(Node* root) {
+    if (root != nullptr) {
+        clearTree(root->left);
+        clearTree(root->right);
+        delete root;
+    }
+}
+
+// ===== 主程式 main =====
+int main() {
+    Node* root = nullptr;
+    int n, key;
+
+    cout << "請輸入節點數量: ";
+    cin >> n;
+
+    cout << "請輸入 " << n << " 個節點值: ";
+    for (int i = 0; i < n; i++) {
+        cin >> key;
+        root = insert(root, key);
+    }
+
+    cout << "原本 BST 的 inorder: ";
+    inorder(root);
+    cout << endl;
+
+    cout << "請輸入要刪除的 key: ";
+    cin >> key;
+
+    root = deleteNode(root, key);
+
+    cout << "刪除後 BST 的 inorder: ";
+    inorder(root);
+    cout << endl;
+
+    clearTree(root);
+    return 0;
+}
+```
 ## 效能分析
+# $(A)$ 小題程式
 | 函式 | 功能 | 時間複雜度 | 空間複雜度 |
 |----------|--------------|----------|----------|
-| $IsEmpty()$   | 判斷 $heap$ 是否為空 | $O(1)$    | $O(n)$        |
-| $Top()$   | 取得最小元素 | $O(1)$        | $O(1)$        |
-| $Push()$   | 插入元素 | $O(log n)$        | $O(1)$        |
-| $POP()$   | 刪除最小元素 | $O(log n)$       | $O(1)$       |
-| $ChangeSize()$   | 擴充陣列 | $O(n)$       | $O(n)$       |
-| $PrintHeap()$   | 輸出 $heap$ 陣列 | $O(n)$       | $O(1)$       |
+| $insert()$   | 插入節點 | $O(h)$    | $O(h)$        |
+| $height()$   | 計算樹高 | $O(n)$        | $O(h)$        |
+| $clear()$   | 刪除整棵樹 | $O(n)$        | $O(h)$        |
 
+在隨機插入情況下：
+$h$ ≈ $O(log n)$
+
+因此整體插入 $n$ 個節點時間：
+$O(nlog n)$
+
+# $(B)$ 小題程式
+| 函式 | 功能 | 時間複雜度 |
+|----------|--------------|----------|
+| $insert()$   | 插入節點 | $O(h)$    | 
+| $findMin()$   | 找出最小節點 | $O(h)$        |
+| $deleteNode()$   | 刪除節點 | $O(h)$        |
+| $inorder()$   | 中序走訪 | $O(n)$        |
+
+因此 delete 的時間複雜度：
+
+$Time$ $Complexity$ $of$ $Delete$ = $O(h)$
+	•	平均情況： $O(log n)$
+	•	最壞情況： $O(n)$
 ## 測試與驗證 
 
 ### 測試案例
+# $(A)$ 小題程式
+| $n$ | $height$ | $height/log2n$ |
+|----------|--------------|----------|
+| $100$   | $13$ | $1.95$    |
+| $500$   | $18$ | $2.01$        |
+| $1000$   | $20$ | $2.00$        |
+| $2000$   | $22$ | $1.99$        |
+| $5000$  | $25$ | $2.02$        |
+| $10000$  | $27$ | $2.03$        |
 
-| 測試案例 | 輸入 | 預期輸出 | 實際輸出 |
+# $(B)$ 小題程式
+| 測試案例 | 輸入 $BST$ | 刪除 $key$ | 刪除後 $inorder$ |
 |----------|--------------|----------|----------|
-| 測試一   | $Push$ $12,6,8,7,15,3$ | $3,7,6,12,15,8$    | $3,7,6,12,15,8$        |
-| 測試二   | $TOP()$ | $3$        | $3$        |
-| 測試三   | $After$ $POP$ | $6,7,8,12,15$        | $6,7,8,12,15$        |
+| 測試一   | $10$ $7$ $12$ $3$ $11$ $9$ $16$ | $3$    | $7$ $9$ $10$ $11$ $12$ $16$       |
+| 測試二   | $10$ $7$ $12$ $3$ $11$ $9$ $16$  | $12$        | $3$ $7$ $9$ $10$ $11$ $16$        |
+| 測試三   | $10$ $7$ $12$ $3$ $11$ $9$ $16$ | $10$        | $3$ $7$ $9$ $11$ $12$ $16$        |
 ### 編譯與執行指令
 
 ```shell
