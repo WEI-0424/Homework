@@ -40,7 +40,7 @@
 
 using namespace std;
 
-/* ================= LinkedGraph ================= */
+// ================= LinkedGraph ================= 
 class LinkedGraph {
 private:
     int n;
@@ -128,7 +128,7 @@ public:
     }
 };
 
-/* ================= WeightedGraph ================= */
+// ================= WeightedGraph ================= 
 class WeightedGraph {
 private:
     int n;
@@ -274,7 +274,7 @@ public:
     }
 };
 
-/* ================= main ================= */
+// ================= main ================= 
 int main() {
     cout << "=== LinkedGraph ===\n";
 
