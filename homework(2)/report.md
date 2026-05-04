@@ -317,32 +317,33 @@ int main() {
 
 ## 效能分析
 
-### (1) $Linked$ $Graph$
+### (1) $LinkedGraph$
 | 演算法 | 時間複雜度                 | 空間複雜度           |
 | ---- | -------------------- | -------------- | 
 | $DFS$  | $O$ $(V+E)$           | $O$ $(V)$    | 
 | $BFS$  | $O$ $(V+E)$           | $O$ $(V)$    | 
 | $Connected$ $Components$  | $O$ $(V+E)$           | $O$ $(V)$    | 
 
-1. Adjacency List 的空間複雜度是 *O(V + E)*。
-   V 是頂點數，E 是邊數。因為它只會存真的有連接的邊，所以比 Adjacency Matrix 省空間。
+### (2) $WeightGraph$
+#### $Prim$
+| 方法 | 時間複雜度                 | 
+| ---- | -------------------- | 
+| $Prim$  | $O$ $(V^2)$           | 
 
-2. DFS 的時間複雜度是 *O(V + E)*。
-   因為每個頂點最多會被走訪一次，每條邊也大概只會檢查一次。
+#### $Kruskal$
+| 方法 | 時間複雜度                 | 
+| ---- | -------------------- | 
+| $Kruskal$  | $O$ $(E log E)$           | 
+#### $Dijkstra$
+| 方法 | 時間複雜度                 | 
+| ---- | -------------------- | 
+| $Dijkstra$  | $O$ $(E log V)$           | 
 
-3. BFS 的時間複雜度也是 *O(V + E)*。
-   BFS 用 queue 來做，會一層一層往外搜尋。
-
-4. Kruskal 的時間複雜度是 *O(E log E)*。
-   因為它要先把所有邊依照權重排序，排序通常是最花時間的地方。
-
-5. Dijkstra 的時間複雜度大約是 *O((V + E) log V)*。
-   因為我用 priority queue 來找目前距離最小的點。
-
-6. 整體空間複雜度大約是 *O(V + E)*。
-   因為程式裡面需要存 adjacency list、visited、distance 和 edge list。
-
----
+#### 空間複雜度
+| 結構 | 空間                 | 
+| ---- | -------------------- | 
+| $adjacency$ $list$ | $O$ $(V + E))$           | 
+| $dist / visited$  | $O$ $(V)$           | 
 
 ## 測試與驗證
 
