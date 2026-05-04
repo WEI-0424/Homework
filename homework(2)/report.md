@@ -317,6 +317,13 @@ int main() {
 
 ## 效能分析
 
+### (1) $Linked$ $Graph$
+| 演算法 | 時間複雜度                 | 空間複雜度           |
+| ---- | -------------------- | -------------- | 
+| $DFS$  | $O$ $(V+E)$           | $O$ $(V)$    | 
+| $BFS$  | $O$ $(V+E)$           | $O$ $(V)$    | 
+| $Connected$ $Components$  | $O$ $(V+E)$           | $O$ $(V)$    | 
+
 1. Adjacency List 的空間複雜度是 *O(V + E)*。
    V 是頂點數，E 是邊數。因為它只會存真的有連接的邊，所以比 Adjacency Matrix 省空間。
 
