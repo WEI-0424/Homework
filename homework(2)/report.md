@@ -1,6 +1,6 @@
 # 41343149 41341341 
 
-## 作業一 $Polynomial$ $Class$
+## $HomeWork$ $2$ $Graph$
 
 ## 解題說明
 
