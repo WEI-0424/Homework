@@ -400,32 +400,52 @@ int main() {
 
 ### 程式輸出結果
 
-```shell id="stxfzt"
-DFS: 0 1 2 3 4 5
-BFS: 0 1 2 3 4 5
+```shell 
+=== LinkedGraph ===
+Adjacency List:
+0: 1 2 
+1: 0 3 
+2: 0 
+3: 1 4 
+4: 3 
+5: 
+DFS: 0 1 3 4 2 
+BFS: 0 1 2 3 4 
+Connected Components:
+Component 1: 0 1 3 4 2 
+Component 2: 5 
+Total Components: 2
+
+=== WeightedGraph ===
+Weighted Adjacency List:
+0: (1, 10) (2, 6) (3, 5) 
+1: (0, 10) (3, 15) 
+2: (0, 6) (3, 4) 
+3: (0, 5) (1, 15) (2, 4) 
+
+Prim MST:
+0 - 1 : 10
+3 - 2 : 4
+0 - 3 : 5
+Prim MST Total Cost: 19
 
 Kruskal MST:
-1 - 2 : 1
-0 - 2 : 2
-3 - 4 : 2
-4 - 5 : 3
-1 - 3 : 5
-Total Cost: 13
+2 - 3 : 4
+0 - 3 : 5
+0 - 1 : 10
+Kruskal MST Total Cost: 19
 
-Dijkstra Shortest Path from 0:
-0 to 0 = 0
-0 to 1 = 3
-0 to 2 = 2
-0 to 3 = 8
-0 to 4 = 10
-0 to 5 = 13
+Dijkstra Shortest Paths from 0:
+0 -> 0 = 0
+0 -> 1 = 10
+0 -> 2 = 6
+0 -> 3 = 5
 ```
 
 ### 編譯與執行指令
 
 ```shell 
-g++ graph.cpp -o graph.exe
-graph.exe
+wei@Mac code % g++ -std=c++17 homework_2.cpp -o homework_2 && ./homework_2
 ```
 
 ---
