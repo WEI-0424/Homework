@@ -4,9 +4,13 @@
 
 ## 解題說明
 
-本題主要是參考 Graph 簡報內容，來做一個圖形資料結構的程式。簡報裡有提到 Graph ADT、圖形表示法、Adjacency Matrix、Adjacency List、Weighted Edges、DFS、BFS、Minimum Cost Spanning Trees 和 Shortest Paths 等內容，所以我這次是用 Adjacency List 來實作圖形，並且在程式裡面加入 DFS、BFS、Kruskal 最小生成樹，以及 Dijkstra 最短路徑。
+這一次的作業是要我們實作兩張圖 $Graph$ 他是資料結構跟演算法的結合，有分為兩大部分:
+ 
+無權重圖 $(LinkedGraph)$ 還有 加權圖 $(WeightGraph)$
 
-一開始我對 Graph 的概念其實沒有很熟，因為它不像一般陣列或串列那麼直覺。Graph 是由很多點和邊組成，每個點可以連到其他點，所以我先用比較容易理解的方式，把每個點旁邊連到誰都記錄下來。
+無權重的圖主要要先建立一個 $Adjaceny$ $List$ 的圖，並且要對該圖進行深度優先搜尋 $(DFS)$ 還有 廣度優先搜尋 $(BFS)$ 還有連通分量的計算，做完這些之後就可以了解圖的結構、節點間的關係，以及整體圖是否由多個子圖組成。
+
+而加權的圖要做的是三種圖的演算法像是 $Prim$ 、$Kruskal$ 這兩種的最小生成樹演算法 $(minimum Spanning Tree)$ 還有 $Dijkstra$ 單源最短路徑演算法。
 
 ### 解題策略
 
@@ -25,7 +29,7 @@
 
 以下為主要程式碼：
 
-```cpp id="85gcc4"
+```cpp 
 #include <iostream>
 #include <vector>
 #include <queue>
