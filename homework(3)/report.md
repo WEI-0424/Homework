@@ -23,15 +23,36 @@
 然後針對不同的資料量 $n$ 量測每個排序法在 $Worst-Case$ 還有 $average-case$ 下的執行時間，之後比較哪一種排序法在不同情況下表現最佳，最後根據結果設計 $Composite$ $sort$ 使程式可以依照資料量選擇比較適合的排序方法。
    
 ### 解題策略
-首先要熟悉 $Adjacency$ $List$ 的表示方法，還要了解 $DFS$ 還有 $BFS$ 間的走訪方式還有差異，還要可以判斷圖的連通性。
 
-1. 使用 $Adjacency$ $List$ 來表示圖，因為這種方式比較省空間。
-2. 如果是無加權圖，只要記錄相鄰頂點就可以。
-3. 如果是加權圖，除了記錄相鄰頂點，還要記錄邊的權重。
-4. 用 $DFS$ 來做深度搜尋。
-5. 用 $BFS$ 來做廣度搜尋。
-6. 用 $Kruskal$ 找出最小生成樹。
-7. 用 $Dijkstra$ 找出從起點到其他點的最短距離。
+1. $Insertion$ $Sort$
+
+   $Insertion$ $Sort$很適合小型資料的排序，而它的優點是程式很簡單還有它的額外空間很少，但是 $Worst$ $Case$ 是 $O(n^2)$ 
+   在資料量很小的時候反而會比複雜的排序法還快
+
+2. $Quick$ $Sort$
+
+   $Quick$ $Sort$ 的平均效率很好， 它是 $O(nlogn)$
+   這次的題目要求使用 $median-of-three$ 選 $pivot$
+
+3. $Merge$ $Sort$
+
+   $Merge$ $Sort$ 不管是在 $best$ $、$ $average$ $、$ $worst$ $case$ 都是 $O(n*log*n)$
+
+   所以它在　$worst$ $case$　的準則下很穩定
+
+4. $Heap$ $Sort$
+
+   $Heap$ $Sort$ 也是 $worst$ $case$ $:$ $O(n*log*n)$
+
+   而且只需要 $O(1)$ 額外空間，所以也適合 $worst$ $case$ 比較
+ 
+6. $Composite$ $Sort$
+
+   因為這次作業強調的是 $worst-time$ 準則所以要避免在最壞情況下使用 $Quick$ $Sort$ 作為主要選擇，而其他的資料就要 $:$
+
+   小資料量 $:$ 使用 $Insertion$ $Sort$
+
+   大資料量 $:$ 使用 $Heap$ $Sort$ 或是 $Merge$ $Sort$
 
 ---
 
