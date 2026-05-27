@@ -347,34 +347,13 @@ int main() {
 
 ## 效能分析
 
-| 排序法 | $Best$ $Case$                 | $Average$ $Case$           | $Worst$ $Case$           | 空間複雜度           |
-| ---- | -------------------- | -------------- | -------------- | -------------- |
-| $Insertion$ $Sort$  | $O(n)$           | $O(n^2)$    | $O(n^2)$   | $O(1)$   |
-| $Quick$ $Sort$  | $O(nlogn)$           | $O(nlogn)$    | $O(n^2)$    | $O(logn)$    | 
-| $Merge$ $Sort$  | $O(nlogn)$           | $O(nlogn)$    | $O(nlogn)$    | $O(n)$    | 
-| $Heap$ $Sort$  | $O(nlogn)$           | $O(nlogn)$    | $O(nlogn)$    | $O(1)$    | 
-| $Composite$ $Sort$  | 依選擇而定           | 依選擇而定    | 約 $O(nlogn)$    | 約 $O(1)$    | 
-
-### (2) $WeightGraph$
-#### $Prim$
-| 方法 | 時間複雜度                 | 
-| ---- | -------------------- | 
-| $Prim$  | $O$ $(V^2)$           | 
-
-#### $Kruskal$
-| 方法 | 時間複雜度                 | 
-| ---- | -------------------- | 
-| $Kruskal$  | $O$ $(E log E)$           | 
-#### $Dijkstra$
-| 方法 | 時間複雜度                 | 
-| ---- | -------------------- | 
-| $Dijkstra$  | $O$ $(E log V)$           | 
-
-#### 空間複雜度
-| 結構 | 空間                 | 
-| ---- | -------------------- | 
-| $adjacency$ $list$ | $O$ $(V + E))$           | 
-| $dist / visited$  | $O$ $(V)$           | 
+| 排序法 | $Best$ $Case$                 | $Average$ $Case$           | $Worst$ $Case$           | 空間複雜度           | 空間複雜度           |
+| ---- | -------------------- | -------------- | -------------- | -------------- | -------------- |
+| $Insertion$ $Sort$  | $O(n)$           | $O(n^2)$    | $O(n^2)$   | $O(1)$   | $O(n^2)$   |
+| $Quick$ $Sort$  | $O(nlogn)$           | $O(nlogn)$    | $O(n^2)$    | $O(logn)$    | $O(nlogn)$    |
+| $Merge$ $Sort$  | $O(nlogn)$           | $O(nlogn)$    | $O(nlogn)$    | $O(n)$    | $O(nlogn)$    |
+| $Heap$ $Sort$  | $O(nlogn)$           | $O(nlogn)$    | $O(nlogn)$    | $O(1)$    | $O(nlogn)$    |
+| $Composite$ $Sort$  | 依選擇而定           | 依選擇而定    | 約 $O(nlogn)$    | 約 $O(1)$    |  約 $O(nlogn)$    |
 
 ## 測試與驗證
 
