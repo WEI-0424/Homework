@@ -64,31 +64,36 @@
 #include <iostream>
 #include <vector>
 #include <algorithm>
-#include <cstdlib>
-#include <ctime>
 #include <chrono>
+#include <random>
+#include <ctime>
+
 using namespace std;
 using namespace chrono;
 
-// ===== Insertion Sort =====
+// ==================== Insertion Sort ====================
 void insertionSort(vector<int>& a) {
     int n = a.size();
 
     for (int i = 1; i < n; i++) {
-        int temp = a[i];
+        int key = a[i];
         int j = i - 1;
 
-        while (j >= 0 && a[j] > temp) {
+        while (j >= 0 && a[j] > key) {
             a[j + 1] = a[j];
             j--;
         }
 
-        a[j + 1] = temp;
+        a[j + 1] = key;
     }
 }
 
-// ===== Median of Three =====
-int medianOfThree(vector<int>& a, int left, int right) {
+// ==================== Quick Sort ====================
+
+// Partition Function
+int partition(vector<int>& a, int left, int right) {
+
+    // median-of-three
     int mid = (left + right) / 2;
 
     if (a[left] > a[mid])
@@ -101,56 +106,69 @@ int medianOfThree(vector<int>& a, int left, int right) {
         swap(a[mid], a[right]);
 
     swap(a[mid], a[right - 1]);
-    return a[right - 1];
+
+    int pivot = a[right - 1];
+
+    int i = left;
+    int j = right - 1;
+
+    while (true) {
+
+        while (a[++i] < pivot);
+
+        while (a[--j] > pivot);
+
+        if (i >= j)
+            break;
+
+        swap(a[i], a[j]);
+    }
+
+    swap(a[i], a[right - 1]);
+
+    return i;
 }
 
-// ===== Quick Sort =====
+// Quick Sort Recursive
 void quickSort(vector<int>& a, int left, int right) {
+
     if (left + 10 <= right) {
-        int pivot = medianOfThree(a, left, right);
 
-        int i = left;
-        int j = right - 1;
+        int pivotIndex = partition(a, left, right);
 
-        while (true) {
-            while (a[++i] < pivot) {}
-            while (a[--j] > pivot) {}
-
-            if (i < j)
-                swap(a[i], a[j]);
-            else
-                break;
-        }
-
-        swap(a[i], a[right - 1]);
-
-        quickSort(a, left, i - 1);
-        quickSort(a, i + 1, right);
+        quickSort(a, left, pivotIndex - 1);
+        quickSort(a, pivotIndex + 1, right);
     }
     else {
-        vector<int> temp;
-        for (int i = left; i <= right; i++)
-            temp.push_back(a[i]);
 
-        insertionSort(temp);
+        // 小區間改用 Insertion Sort
+        for (int i = left + 1; i <= right; i++) {
 
-        for (int i = left; i <= right; i++)
-            a[i] = temp[i - left];
+            int key = a[i];
+            int j = i - 1;
+
+            while (j >= left && a[j] > key) {
+                a[j + 1] = a[j];
+                j--;
+            }
+
+            a[j + 1] = key;
+        }
     }
 }
 
-void quickSort(vector<int>& a) {
-    if (!a.empty())
-        quickSort(a, 0, a.size() - 1);
-}
+// ==================== Merge Sort ====================
 
-// ===== Iterative Merge Sort =====
-void merge(vector<int>& a, vector<int>& temp, int left, int mid, int right) {
+// Merge Function
+void merge(vector<int>& a, vector<int>& temp,
+           int left, int mid, int right) {
+
     int i = left;
     int j = mid + 1;
     int k = left;
 
     while (i <= mid && j <= right) {
+
         if (a[i] <= a[j])
             temp[k++] = a[i++];
         else
@@ -163,28 +181,42 @@ void merge(vector<int>& a, vector<int>& temp, int left, int mid, int right) {
     while (j <= right)
         temp[k++] = a[j++];
 
-    for (int p = left; p <= right; p++)
-        a[p] = temp[p];
+    for (int x = left; x <= right; x++)
+        a[x] = temp[x];
 }
 
-void mergeSort(vector<int>& a) {
-    int n = a.size();
-    vector<int> temp(n);
+// Merge Sort Recursive
+void mergeSort(vector<int>& a, vector<int>& temp,
+               int left, int right) {
 
-    for (int size = 1; size < n; size *= 2) {
-        for (int left = 0; left < n - size; left += 2 * size) {
-            int mid = left + size - 1;
-            int right = min(left + 2 * size - 1, n - 1);
-            merge(a, temp, left, mid, right);
-        }
+    if (left < right) {
+
+        int mid = (left + right) / 2;
+
+        mergeSort(a, temp, left, mid);
+        mergeSort(a, temp, mid + 1, right);
+
+        merge(a, temp, left, mid, right);
     }
 }
 
-// ===== Heap Sort =====
-void heapify(vector<int>& a, int n, int root) {
-    int largest = root;
-    int left = 2 * root + 1;
-    int right = 2 * root + 2;
+// Wrapper
+void mergeSortWrapper(vector<int>& a) {
+
+    vector<int> temp(a.size());
+
+    mergeSort(a, temp, 0, a.size() - 1);
+}
+
+// ==================== Heap Sort ====================
+
+// Heapify
+void heapify(vector<int>& a, int n, int i) {
+
+    int largest = i;
+
+    int left = 2 * i + 1;
+    int right = 2 * i + 2;
 
     if (left < n && a[left] > a[largest])
         largest = left;
@@ -192,94 +224,120 @@ void heapify(vector<int>& a, int n, int root) {
     if (right < n && a[right] > a[largest])
         largest = right;
 
-    if (largest != root) {
-        swap(a[root], a[largest]);
+    if (largest != i) {
+
+        swap(a[i], a[largest]);
+
         heapify(a, n, largest);
     }
 }
 
+// Heap Sort
 void heapSort(vector<int>& a) {
+
     int n = a.size();
 
+    // Build Heap
     for (int i = n / 2 - 1; i >= 0; i--)
         heapify(a, n, i);
 
+    // Extract Elements
     for (int i = n - 1; i > 0; i--) {
+
         swap(a[0], a[i]);
+
         heapify(a, i, 0);
     }
 }
 
-// ===== Composite Sort =====
-void compositeSort(vector<int>& a) {
-    int n = a.size();
+// ==================== Measure Time ====================
 
-    if (n <= 30)
-        insertionSort(a);
-    else
-        heapSort(a);
-}
-
-// ===== Generate Test Data =====
-vector<int> generateWorstInsertion(int n) {
-    vector<int> a;
-    for (int i = n; i >= 1; i--)
-        a.push_back(i);
-    return a;
-}
-
-vector<int> generateRandom(int n) {
-    vector<int> a;
-    for (int i = 1; i <= n; i++)
-        a.push_back(i);
-
-    random_shuffle(a.begin(), a.end());
-    return a;
-}
-
-// ===== Check Sorted =====
-bool isSorted(const vector<int>& a) {
-    for (int i = 1; i < a.size(); i++) {
-        if (a[i - 1] > a[i])
-            return false;
-    }
-    return true;
-}
-
-// ===== Timing Function =====
-template <class SortFunc>
+template <typename SortFunc>
 double measureTime(vector<int> a, SortFunc sortFunc) {
+
     auto start = high_resolution_clock::now();
+
     sortFunc(a);
+
     auto end = high_resolution_clock::now();
 
-    duration<double, milli> time = end - start;
-    return time.count();
+    duration<double, milli> elapsed = end - start;
+
+    return elapsed.count();
 }
 
-// ===== Main =====
+// ==================== Generate Worst Case ====================
+
+vector<int> generateWorstCase(int n) {
+
+    vector<int> a(n);
+
+    for (int i = 0; i < n; i++) {
+        a[i] = n - i;
+    }
+
+    return a;
+}
+
+// ==================== Main ====================
+
 int main() {
-    srand(time(nullptr));
 
-    int nValues[] = {500, 1000, 2000, 3000, 4000, 5000};
+    srand(time(0));
 
-    cout << "n, Insertion, Quick, Merge, Heap, Composite\n";
+    vector<int> testSize = {
+        500,
+        1000,
+        2000,
+        3000,
+        4000,
+        5000
+    };
 
-    for (int n : nValues) {
-        vector<int> data = generateRandom(n);
+    cout << "===== Sorting Performance Test =====\n\n";
 
-        double tInsertion = measureTime(data, insertionSort);
-        double tQuick = measureTime(data, quickSort);
-        double tMerge = measureTime(data, mergeSort);
-        double tHeap = measureTime(data, heapSort);
-        double tComposite = measureTime(data, compositeSort);
+    for (int n : testSize) {
 
-        cout << n << ", "
-             << tInsertion << ", "
-             << tQuick << ", "
-             << tMerge << ", "
-             << tHeap << ", "
-             << tComposite << endl;
+        cout << "n = " << n << endl;
+
+        vector<int> data = generateWorstCase(n);
+
+        // Heap / Quick 使用 random permutation
+        shuffle(data.begin(),
+                data.end(),
+                default_random_engine(time(0)));
+
+        // Insertion Sort
+        double tInsertion =
+            measureTime(data, insertionSort);
+
+        // Quick Sort
+        double tQuick =
+            measureTime(data, [](vector<int>& a) {
+                quickSort(a, 0, a.size() - 1);
+            });
+
+        // Merge Sort
+        double tMerge =
+            measureTime(data, mergeSortWrapper);
+
+        // Heap Sort
+        double tHeap =
+            measureTime(data, heapSort);
+
+        cout << "Insertion Sort : "
+             << tInsertion << " ms\n";
+
+        cout << "Quick Sort     : "
+             << tQuick << " ms\n";
+
+        cout << "Merge Sort     : "
+             << tMerge << " ms\n";
+
+        cout << "Heap Sort      : "
+             << tHeap << " ms\n";
+
+        cout << "-----------------------------\n";
     }
 
     return 0;
