@@ -431,51 +431,48 @@ int main() {
 ### 程式輸出結果
 
 ```shell 
-=== LinkedGraph ===
-Adjacency List:
-0: 1 2 
-1: 0 3 
-2: 0 
-3: 1 4 
-4: 3 
-5: 
-DFS: 0 1 3 4 2 
-BFS: 0 1 2 3 4 
-Connected Components:
-Component 1: 0 1 3 4 2 
-Component 2: 5 
-Total Components: 2
-
-=== WeightedGraph ===
-Weighted Adjacency List:
-0: (1, 10) (2, 6) (3, 5) 
-1: (0, 10) (3, 15) 
-2: (0, 6) (3, 4) 
-3: (0, 5) (1, 15) (2, 4) 
-
-Prim MST:
-0 - 1 : 10
-3 - 2 : 4
-0 - 3 : 5
-Prim MST Total Cost: 19
-
-Kruskal MST:
-2 - 3 : 4
-0 - 3 : 5
-0 - 1 : 10
-Kruskal MST Total Cost: 19
-
-Dijkstra Shortest Paths from 0:
-0 -> 0 = 0
-0 -> 1 = 10
-0 -> 2 = 6
-0 -> 3 = 5
+n = 500
+Insertion Sort : 0.504875 ms
+Quick Sort     : 0.064 ms
+Merge Sort     : 0.132959 ms
+Heap Sort      : 0.138209 ms
+-----------------------------
+n = 1000
+Insertion Sort : 1.894 ms
+Quick Sort     : 0.140334 ms
+Merge Sort     : 0.286541 ms
+Heap Sort      : 0.305583 ms
+-----------------------------
+n = 2000
+Insertion Sort : 6.79921 ms
+Quick Sort     : 0.252666 ms
+Merge Sort     : 0.493041 ms
+Heap Sort      : 0.485458 ms
+-----------------------------
+n = 3000
+Insertion Sort : 11.8921 ms
+Quick Sort     : 0.297666 ms
+Merge Sort     : 0.594458 ms
+Heap Sort      : 0.658041 ms
+-----------------------------
+n = 4000
+Insertion Sort : 17 ms
+Quick Sort     : 0.343209 ms
+Merge Sort     : 0.700958 ms
+Heap Sort      : 0.735042 ms
+-----------------------------
+n = 5000
+Insertion Sort : 22.2105 ms
+Quick Sort     : 0.382875 ms
+Merge Sort     : 0.745833 ms
+Heap Sort      : 0.7935 ms
+-----------------------------
 ```
 
 ### 編譯與執行指令
 
 ```shell 
-wei@Mac code % g++ -std=c++17 homework_2.cpp -o homework_2 && ./homework_2
+wei@Mac code % g++ -std=c++17 Sorting_3.cpp -o Sorting_3 && ./Sorting_3
 ```
 
 ---
