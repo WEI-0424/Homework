@@ -294,7 +294,6 @@ int main() {
         5000
     };
 
-    cout << "===== Sorting Performance Test =====\n\n";
 
     for (int n : testSize) {
 
