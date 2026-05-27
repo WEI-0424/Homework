@@ -63,282 +63,224 @@
 ```cpp 
 #include <iostream>
 #include <vector>
-#include <queue>
 #include <algorithm>
-#include <tuple>
-#include <climits>
-#include <functional>
-
+#include <cstdlib>
+#include <ctime>
+#include <chrono>
 using namespace std;
+using namespace chrono;
 
-// ================= LinkedGraph ================= 
-class LinkedGraph {
-private:
-    int n;
-    vector<vector<int>> adj;
+// ===== Insertion Sort =====
+void insertionSort(vector<int>& a) {
+    int n = a.size();
 
-    void DFSUtil(int v, vector<bool>& visited) {
-        visited[v] = true;
-        cout << v << " ";
+    for (int i = 1; i < n; i++) {
+        int temp = a[i];
+        int j = i - 1;
 
-        for (int u : adj[v]) {
-            if (!visited[u]) {
-                DFSUtil(u, visited);
-            }
-        }
-    }
-
-public:
-    LinkedGraph(int n) : n(n) {
-        adj.resize(n);
-    }
-
-    void insertEdge(int u, int v) {
-        adj[u].push_back(v);
-        adj[v].push_back(u);
-    }
-
-    void display() {
-        cout << "Adjacency List:\n";
-        for (int i = 0; i < n; i++) {
-            cout << i << ": ";
-            for (int j : adj[i]) {
-                cout << j << " ";
-            }
-            cout << endl;
-        }
-    }
-
-    void DFS(int start) {
-        vector<bool> visited(n, false);
-        cout << "DFS: ";
-        DFSUtil(start, visited);
-        cout << endl;
-    }
-
-    void BFS(int start) {
-        vector<bool> visited(n, false);
-        queue<int> q;
-
-        visited[start] = true;
-        q.push(start);
-
-        cout << "BFS: ";
-        while (!q.empty()) {
-            int v = q.front();
-            q.pop();
-
-            cout << v << " ";
-
-            for (int u : adj[v]) {
-                if (!visited[u]) {
-                    visited[u] = true;
-                    q.push(u);
-                }
-            }
-        }
-        cout << endl;
-    }
-
-    void ConnectedComponents() {
-        vector<bool> visited(n, false);
-        int count = 0;
-
-        cout << "Connected Components:\n";
-
-        for (int i = 0; i < n; i++) {
-            if (!visited[i]) {
-                cout << "Component " << count + 1 << ": ";
-                DFSUtil(i, visited);
-                cout << endl;
-                count++;
-            }
+        while (j >= 0 && a[j] > temp) {
+            a[j + 1] = a[j];
+            j--;
         }
 
-        cout << "Total Components: " << count << endl;
+        a[j + 1] = temp;
     }
-};
+}
 
-// ================= WeightedGraph ================= 
-class WeightedGraph {
-private:
-    int n;
-    vector<vector<pair<int, int>>> adj;
+// ===== Median of Three =====
+int medianOfThree(vector<int>& a, int left, int right) {
+    int mid = (left + right) / 2;
 
-public:
-    WeightedGraph(int n) : n(n) {
-        adj.resize(n);
+    if (a[left] > a[mid])
+        swap(a[left], a[mid]);
+
+    if (a[left] > a[right])
+        swap(a[left], a[right]);
+
+    if (a[mid] > a[right])
+        swap(a[mid], a[right]);
+
+    swap(a[mid], a[right - 1]);
+    return a[right - 1];
+}
+
+// ===== Quick Sort =====
+void quickSort(vector<int>& a, int left, int right) {
+    if (left + 10 <= right) {
+        int pivot = medianOfThree(a, left, right);
+
+        int i = left;
+        int j = right - 1;
+
+        while (true) {
+            while (a[++i] < pivot) {}
+            while (a[--j] > pivot) {}
+
+            if (i < j)
+                swap(a[i], a[j]);
+            else
+                break;
+        }
+
+        swap(a[i], a[right - 1]);
+
+        quickSort(a, left, i - 1);
+        quickSort(a, i + 1, right);
     }
+    else {
+        vector<int> temp;
+        for (int i = left; i <= right; i++)
+            temp.push_back(a[i]);
 
-    void insertEdge(int u, int v, int w) {
-        adj[u].push_back({v, w});
-        adj[v].push_back({u, w});
+        insertionSort(temp);
+
+        for (int i = left; i <= right; i++)
+            a[i] = temp[i - left];
     }
+}
 
-    void display() {
-        cout << "Weighted Adjacency List:\n";
-        for (int i = 0; i < n; i++) {
-            cout << i << ": ";
-            for (auto [v, w] : adj[i]) {
-                cout << "(" << v << ", " << w << ") ";
-            }
-            cout << endl;
-        }
-    }
+void quickSort(vector<int>& a) {
+    if (!a.empty())
+        quickSort(a, 0, a.size() - 1);
+}
 
-    void Prim(int start) {
-        vector<int> key(n, INT_MAX);
-        vector<int> parent(n, -1);
-        vector<bool> inMST(n, false);
+// ===== Iterative Merge Sort =====
+void merge(vector<int>& a, vector<int>& temp, int left, int mid, int right) {
+    int i = left;
+    int j = mid + 1;
+    int k = left;
 
-        key[start] = 0;
-        int totalCost = 0;
-
-        for (int i = 0; i < n; i++) {
-            int u = -1;
-
-            for (int j = 0; j < n; j++) {
-                if (!inMST[j] && (u == -1 || key[j] < key[u])) {
-                    u = j;
-                }
-            }
-
-            if (u == -1) break;
-
-            inMST[u] = true;
-            totalCost += key[u];
-
-            for (auto [v, w] : adj[u]) {
-                if (!inMST[v] && w < key[v]) {
-                    key[v] = w;
-                    parent[v] = u;
-                }
-            }
-        }
-
-        cout << "Prim MST:\n";
-        for (int i = 0; i < n; i++) {
-            if (parent[i] != -1) {
-                cout << parent[i] << " - " << i << " : " << key[i] << endl;
-            }
-        }
-
-        cout << "Prim MST Total Cost: " << totalCost << endl;
-    }
-
-    void Kruskal() {
-        vector<tuple<int, int, int>> edges;
-
-        for (int u = 0; u < n; u++) {
-            for (auto [v, w] : adj[u]) {
-                if (u < v) {
-                    edges.push_back({w, u, v});
-                }
-            }
-        }
-
-        sort(edges.begin(), edges.end());
-
-        vector<int> parent(n);
-        for (int i = 0; i < n; i++) {
-            parent[i] = i;
-        }
-
-        function<int(int)> find = [&](int x) {
-            if (parent[x] == x) return x;
-            return parent[x] = find(parent[x]);
-        };
-
-        int totalCost = 0;
-
-        cout << "Kruskal MST:\n";
-
-        for (auto [w, u, v] : edges) {
-            int rootU = find(u);
-            int rootV = find(v);
-
-            if (rootU != rootV) {
-                parent[rootU] = rootV;
-                totalCost += w;
-
-                cout << u << " - " << v << " : " << w << endl;
-            }
-        }
-
-        cout << "Kruskal MST Total Cost: " << totalCost << endl;
+    while (i <= mid && j <= right) {
+        if (a[i] <= a[j])
+            temp[k++] = a[i++];
+        else
+            temp[k++] = a[j++];
     }
 
-    void Dijkstra(int start) {
-        vector<int> dist(n, INT_MAX);
-        dist[start] = 0;
+    while (i <= mid)
+        temp[k++] = a[i++];
 
-        priority_queue<pair<int, int>, vector<pair<int, int>>, greater<pair<int, int>>> pq;
-        pq.push({0, start});
+    while (j <= right)
+        temp[k++] = a[j++];
 
-        while (!pq.empty()) {
-            auto [d, u] = pq.top();
-            pq.pop();
+    for (int p = left; p <= right; p++)
+        a[p] = temp[p];
+}
 
-            if (d > dist[u]) continue;
+void mergeSort(vector<int>& a) {
+    int n = a.size();
+    vector<int> temp(n);
 
-            for (auto [v, w] : adj[u]) {
-                if (dist[v] > d + w) {
-                    dist[v] = d + w;
-                    pq.push({dist[v], v});
-                }
-            }
-        }
-
-        cout << "Dijkstra Shortest Paths from " << start << ":\n";
-
-        for (int i = 0; i < n; i++) {
-            cout << start << " -> " << i << " = ";
-
-            if (dist[i] == INT_MAX) {
-                cout << "INF";
-            } else {
-                cout << dist[i];
-            }
-
-            cout << endl;
+    for (int size = 1; size < n; size *= 2) {
+        for (int left = 0; left < n - size; left += 2 * size) {
+            int mid = left + size - 1;
+            int right = min(left + 2 * size - 1, n - 1);
+            merge(a, temp, left, mid, right);
         }
     }
-};
+}
 
-// ================= main ================= 
+// ===== Heap Sort =====
+void heapify(vector<int>& a, int n, int root) {
+    int largest = root;
+    int left = 2 * root + 1;
+    int right = 2 * root + 2;
+
+    if (left < n && a[left] > a[largest])
+        largest = left;
+
+    if (right < n && a[right] > a[largest])
+        largest = right;
+
+    if (largest != root) {
+        swap(a[root], a[largest]);
+        heapify(a, n, largest);
+    }
+}
+
+void heapSort(vector<int>& a) {
+    int n = a.size();
+
+    for (int i = n / 2 - 1; i >= 0; i--)
+        heapify(a, n, i);
+
+    for (int i = n - 1; i > 0; i--) {
+        swap(a[0], a[i]);
+        heapify(a, i, 0);
+    }
+}
+
+// ===== Composite Sort =====
+void compositeSort(vector<int>& a) {
+    int n = a.size();
+
+    if (n <= 30)
+        insertionSort(a);
+    else
+        heapSort(a);
+}
+
+// ===== Generate Test Data =====
+vector<int> generateWorstInsertion(int n) {
+    vector<int> a;
+    for (int i = n; i >= 1; i--)
+        a.push_back(i);
+    return a;
+}
+
+vector<int> generateRandom(int n) {
+    vector<int> a;
+    for (int i = 1; i <= n; i++)
+        a.push_back(i);
+
+    random_shuffle(a.begin(), a.end());
+    return a;
+}
+
+// ===== Check Sorted =====
+bool isSorted(const vector<int>& a) {
+    for (int i = 1; i < a.size(); i++) {
+        if (a[i - 1] > a[i])
+            return false;
+    }
+    return true;
+}
+
+// ===== Timing Function =====
+template <class SortFunc>
+double measureTime(vector<int> a, SortFunc sortFunc) {
+    auto start = high_resolution_clock::now();
+    sortFunc(a);
+    auto end = high_resolution_clock::now();
+
+    duration<double, milli> time = end - start;
+    return time.count();
+}
+
+// ===== Main =====
 int main() {
-    cout << "=== LinkedGraph ===\n";
+    srand(time(nullptr));
 
-    LinkedGraph lg(6); // 頂點 5 是孤立點
-    lg.insertEdge(0, 1);
-    lg.insertEdge(0, 2);
-    lg.insertEdge(1, 3);
-    lg.insertEdge(3, 4);
+    int nValues[] = {500, 1000, 2000, 3000, 4000, 5000};
 
-    lg.display();
-    lg.DFS(0);
-    lg.BFS(0);
-    lg.ConnectedComponents();
+    cout << "n, Insertion, Quick, Merge, Heap, Composite\n";
 
-    cout << "\n=== WeightedGraph ===\n";
+    for (int n : nValues) {
+        vector<int> data = generateRandom(n);
 
-    WeightedGraph wg(4);
-    wg.insertEdge(0, 1, 10);
-    wg.insertEdge(0, 2, 6);
-    wg.insertEdge(0, 3, 5);
-    wg.insertEdge(1, 3, 15);
-    wg.insertEdge(2, 3, 4);
+        double tInsertion = measureTime(data, insertionSort);
+        double tQuick = measureTime(data, quickSort);
+        double tMerge = measureTime(data, mergeSort);
+        double tHeap = measureTime(data, heapSort);
+        double tComposite = measureTime(data, compositeSort);
 
-    wg.display();
-    cout << endl;
-
-    wg.Prim(0);
-    cout << endl;
-
-    wg.Kruskal();
-    cout << endl;
-
-    wg.Dijkstra(0);
+        cout << n << ", "
+             << tInsertion << ", "
+             << tQuick << ", "
+             << tMerge << ", "
+             << tHeap << ", "
+             << tComposite << endl;
+    }
 
     return 0;
 }
