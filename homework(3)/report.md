@@ -8,10 +8,20 @@
  
 小資料 → 用 $Insertion$ $Sort$
 
-無權重的圖主要要先建立一個 $Adjaceny$ $List$ 的圖，並且要對該圖進行深度優先搜尋 $(DFS)$ 還有 廣度優先搜尋 $(BFS)$ 還有連通分量的計算，做完這些之後就可以了解圖的結構、節點間的關係，以及整體圖是否由多個子圖組成。
+中型資料 → 用 $Quick$ $Sort$
 
-而加權的圖要做的是三種圖的演算法像是 $Prim$ 、$Kruskal$ 這兩種的最小生成樹演算法 $(minimum Spanning Tree)$ 還有 $Dijkstra$ 單源最短路徑演算法。
+大資料 → 用 $Merge$ / $Heap$
 
+並且找出哪一個排去法在 $Worst$ $case$ 最快，且寫出一個自動選最佳排序法的程式。
+
+所以我們要先實作出四種排序方法
+1. $Insertion$ $Sort$
+2. $Quick$ $Sort$
+3. $Merge$ $Sort$
+4. $Heap$ $Sort$
+   
+然後針對不同的資料量 $n$ 量測每個排序法在 $Worst-Case$ 還有 $average-case$ 下的執行時間，之後比較哪一種排序法在不同情況下表現最佳，最後根據結果設計 $Composite$ $sort$ 使程式可以依照資料量選擇比較適合的排序方法。
+   
 ### 解題策略
 首先要熟悉 $Adjacency$ $List$ 的表示方法，還要了解 $DFS$ 還有 $BFS$ 間的走訪方式還有差異，還要可以判斷圖的連通性。
 
