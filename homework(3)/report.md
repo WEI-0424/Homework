@@ -484,11 +484,10 @@ wei@Mac code % g++ -std=c++17 Sorting_3.cpp -o Sorting_3 && ./Sorting_3
 
 ```cpp
 vector<vector<int>> graph;
----
+```
 ## 申論及開發報告
 
 本程式主要是在實作 $Graph$ 圖形資料結構，內容包含建立圖形、走訪圖形、最小生成樹和最短路徑。程式使用 $Adjacency$ $List$ 來表示圖形，因為它只會記錄真的有連線的邊，比較不會浪費空間，也比較容易看懂每個點連到哪些點。在建立圖形時，使用 $addEdge()$ 加入邊，因為這題是無向加權圖，所以加入 $u$ 到 $v$ 的同時，也要加入 $v$ 到 $u$。另外也會把邊存到 $edges$ 陣列，方便後面給 $Kruskal$ $Algorithm$ 排序使用。圖形走訪的部分有 $DFS$ 和 $BFS$，$DFS$ 是一直往深處走，$BFS$ 是一層一層往外找，兩者都會用 $visited$ 來避免重複走訪。最小生成樹使用 $Kruskal$ $Algorithm$，先把邊依照權重由小到大排序，再選不會形成 $cycle$ 的邊，並用 $DSU$ 的 $find()$ 和 $unite()$ 來判斷和合併集合。最短路徑使用 $Dijkstra$ $Algorithm$，從起點開始，用 $dist$ 記錄目前最短距離，並用 $priority$ $queue$ 找出目前距離最小的點來更新路徑。整體來說，這個程式可以練習圖形的基本建立，也可以了解 $DFS$、$BFS$、$Kruskal$ $Algorithm$ 和 $Dijkstra$ $Algorithm$ 的基本用法。
----
 
 ## 心得與討論
 
