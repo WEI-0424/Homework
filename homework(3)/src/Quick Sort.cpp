@@ -1,3 +1,4 @@
+// Partition Function
 int partition(vector<int>& a, int left, int right) {
 
     // median-of-three
@@ -35,3 +36,31 @@ int partition(vector<int>& a, int left, int right) {
 
     return i;
 }
+// Quick Sort Recursive
+void quickSort(vector<int>& a, int left, int right) {
+
+    if (left + 10 <= right) {
+
+        int pivotIndex = partition(a, left, right);
+
+        quickSort(a, left, pivotIndex - 1);
+        quickSort(a, pivotIndex + 1, right);
+    }
+    else {
+
+        // 小區間改用 Insertion Sort
+        for (int i = left + 1; i <= right; i++) {
+
+            int key = a[i];
+            int j = i - 1;
+
+            while (j >= left && a[j] > key) {
+                a[j + 1] = a[j];
+                j--;
+            }
+
+            a[j + 1] = key;
+        }
+    }
+}
+
